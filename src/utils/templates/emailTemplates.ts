@@ -199,7 +199,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
         <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
         
         <div style="text-align: center;">
-          <a href="${link}" class="button">Ver Libro</a>
+          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
         </div>
       </div>
       <div class="footer">
@@ -381,7 +381,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         <p>No pierdas esta oportunidad de adquirir este libro que estaba agotado.</p>
         
         <div style="text-align: center;">
-          <a href="${link}" class="button">Ver Libro</a>
+          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
         </div>
       </div>
       <div class="footer">
