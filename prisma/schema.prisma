@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+model User {
+  id                 Int           @id @default(autoincrement())
+  email              String        @unique
+  password           String
+  name               String
+  lastname           String
+  username           String
+  profileImage       String?       @default("https://forum.truckersmp.com/uploads/monthly_2019_09/imported-photo-12263.thumb.png.0a337947bd0458971e73616909a5b1f8.png")
+  phone              String?
+  createdAt          DateTime      @default(now())
+  books              UserBook[]
+  plan               Plan          @default(FREE)
+  planStart          DateTime?
+  planEnd            DateTime?
+  discountPercentage Int           @default(15)
+  lists              UserList[]
+  subscription       Subscription?
+
+  @@map("users")
+}
+
+model Book {
+  id             Int            @id @default(autoincrement())
+  title          String
+  isbn13         String         @unique
+  link           String
+  imageUrl       String
+  price          Int
+  discount       String
+  author         String
+  details        String
+  outOfStock     Boolean
+  description    String
+  users          UserBook[]
+  priceHistories PriceHistory[]
+
+  @@map("books")
+}
+
+model UserBook {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+  book   Book @relation(fields: [bookId], references: [id])
+  bookId Int
+
+  @@unique([userId, bookId])
+  @@map("user_books")
+}
+
+model UserList {
+  id      Int    @id @default(autoincrement())
+  urlList String @unique
+  user    User   @relation(fields: [userId], references: [id])
+  userId  Int
+
+  @@map("user_lists")
+}
+
+model PriceHistory {
+  id     Int      @id @default(autoincrement())
+  book   Book     @relation(fields: [bookId], references: [id])
+  bookId Int
+  price  Int
+  date   DateTime @default(now())
+
+  @@map("price_histories")
+}
+
+enum SubscriptionStatus {
+  PENDING
+  AUTHORIZED
+  PAUSED
+  CANCELLED
+  ACTIVE
+}
+
+model Subscription {
+  id                Int                @id @default(autoincrement())
+  user              User               @relation(fields: [userId], references: [id])
+  userId            Int                @unique
+  mercadoPagoId     String?            @unique
+  status            SubscriptionStatus @default(PENDING)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  externalReference String             @unique
+  reason            String
+  transactionAmount Float
+  frequency         Int                @default(1)
+  frequencyType     String             @default("months")
+  endDate           DateTime?
+  nextPaymentDate   DateTime?
+  lastPaymentDate   DateTime?
+  paymentLink       String?
+
+  @@map("subscriptions")
+}
