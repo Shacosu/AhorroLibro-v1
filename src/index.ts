@@ -2,6 +2,7 @@ import express from 'express';
 import userRoutes from './routes/userRoutes';
 import bookRoutes from './routes/bookRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
+import { initCronJobs } from './utils/cronJobs';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,4 +28,8 @@ app.use('*', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
+  
+  // Initialize cron jobs after server starts
+  const baseUrl = `http://localhost:${port}`;
+  initCronJobs(baseUrl);
 });
