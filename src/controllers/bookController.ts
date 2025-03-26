@@ -233,7 +233,7 @@ export const monitorBooks = async (req: Request, res: Response) => {
               sendBackInStockEmail(bookInfo, user);
             } 
             // Si no es vuelta en stock, verificar si hay descuento
-            else if (bookData.price < lastPrice) {
+            else if (bookData.price < lastPrice && bookData.price > 0) {
               // Calculate discount percentage
               const discount = lastPrice - bookData.price;
               const discountPercentage = (discount / lastPrice) * 100;
