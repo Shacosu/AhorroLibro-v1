@@ -8,7 +8,7 @@ import { BookDiscountInfo } from '../emailUtils';
  * @returns HTML del correo
  */
 export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User): string => {
-  const { title, author, imageUrl, currentPrice, lastPrice, discount, link, description, details, previousPrices } = bookInfo;
+  const { title, author, imageUrl, currentPrice, lastPrice, discount, link, description, details, previousPrices, lowestPrice, lowestPriceDate } = bookInfo;
   
   const discountPercentage = lastPrice ? ((lastPrice - currentPrice) / lastPrice * 100).toFixed(2) : 'N/A';
   const formattedCurrentPrice = `$${currentPrice.toLocaleString()}`;
@@ -24,13 +24,26 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
     
     previousPricesHTML = `
     <div class="previous-prices">
-      <h4 style="margin-bottom: 10px; color: #004E59;">Historial de Precios</h4>
+      <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Historial de Precios</h4>
       ${pricesToShow.map((priceItem, index) => `
         <div class="price-info" style="margin-bottom: ${index === pricesToShow.length - 1 ? '0' : '5px'};">
           <span class="price-label">${new Date(priceItem.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}:</span>
           <span class="price-value">$${priceItem.price.toLocaleString()}</span>
         </div>
       `).join('')}
+    </div>`;
+  }
+
+  // Prepare lowest price section
+  let lowestPriceHTML = '';
+  if (lowestPrice && lowestPrice > 0) {
+    const formattedLowestPrice = `$${lowestPrice.toLocaleString()}`;
+    const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+    
+    lowestPriceHTML = `
+    <div class="price-info" style="background-color: #e6f7ff; border-left: 4px solid #1890ff;">
+      <span class="price-label">Precio más bajo histórico:</span>
+      <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
     </div>`;
   }
 
@@ -115,10 +128,12 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       .price-label {
         font-weight: bold;
         color: #555;
+        font-size: 0.95em;
       }
       .price-value {
         font-weight: bold;
         color: #004E59;
+        font-size: 0.95em;
       }
       .discount {
         color: #E53935;
@@ -182,9 +197,9 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
           </div>
           <div class="price-info">
             <span class="price-label">Precio Actual:</span>
-            <span class="price-value discount">${formattedCurrentPrice} <span style="font-size: 0.9em;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span></span>
+            <span class="price-value discount">${formattedCurrentPrice} <span style="font-size: 0.85em;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span></span>
           </div>
-          
+          ${lowestPriceHTML}
           ${previousPricesHTML}
           
           ${details ? `
@@ -219,10 +234,23 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
  * @returns HTML del correo
  */
 export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: User): string => {
-  const { title, author, imageUrl, currentPrice, link, description, details } = bookInfo;
+  const { title, author, imageUrl, currentPrice, link, description, details, lowestPrice, lowestPriceDate } = bookInfo;
   
   const formattedCurrentPrice = `$${currentPrice.toLocaleString()}`;
   const today = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Prepare lowest price section
+  let lowestPriceHTML = '';
+  if (lowestPrice && lowestPrice > 0) {
+    const formattedLowestPrice = `$${lowestPrice.toLocaleString()}`;
+    const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+    
+    lowestPriceHTML = `
+    <div class="price-info" style="background-color: #e6f7ff; border-left: 4px solid #1890ff;">
+      <span class="price-label">Precio más bajo histórico:</span>
+      <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
+    </div>`;
+  }
 
   return `
   <!DOCTYPE html>
@@ -305,10 +333,12 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
       .price-label {
         font-weight: bold;
         color: #555;
+        font-size: 0.95em;
       }
       .price-value {
         font-weight: bold;
         color: #004E59;
+        font-size: 0.95em;
       }
       .footer {
         margin-top: 20px;
@@ -370,6 +400,8 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
             <span class="price-label">Precio Actual:</span>
             <span class="price-value">${formattedCurrentPrice}</span>
           </div>
+          
+          ${lowestPriceHTML}
           
           ${details ? `
           <div class="details-section">

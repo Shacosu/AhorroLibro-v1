@@ -1,8 +1,10 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import userRoutes from './routes/userRoutes';
 import bookRoutes from './routes/bookRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
 import { initCronJobs } from './utils/cronJobs';
+import cors from 'cors';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,6 +17,11 @@ app.use(express.json({
 app.use(express.urlencoded({ 
   limit: '50mb',
   extended: true
+}));
+app.use(cookieParser());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
 }));
 
 app.use('/api/v1/users', userRoutes);
@@ -29,7 +36,7 @@ app.use('*', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
   
-  // Initialize cron jobs after server starts
-  const baseUrl = `http://localhost:${port}`;
-  initCronJobs(baseUrl);
+  // // Initialize cron jobs after server starts
+  // const baseUrl = `http://localhost:${port}`;
+  // initCronJobs(baseUrl);
 });

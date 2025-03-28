@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { signToken, verifyToken } from '../config/jwt-config';
 
 const prisma = new PrismaClient();
 
@@ -54,5 +55,164 @@ export const createUser = async (req: Request, res: Response) => {
     res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ error: 'Error creating user' });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  if (!req.body) {
+    res.status(400).json({ error: 'Missing request body' });
+    return;
+  }
+  const { email, password } = req.body;
+  
+  if (!email || !password) {
+    res.status(400).json({ error: 'Email y contraseña son requeridos' });
+    return;
+  }
+  
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
+    
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      res.status(401).json({ error: 'Contraseña inválida' });
+      return;
+    }
+    
+    // Crear payload para el token
+    const payload = { userId: user.id };
+    
+    // Firmar el token con el secreto
+    const token = signToken(payload);
+    
+    // Eliminar la contraseña del objeto usuario
+    const { password: _, ...userWithoutPassword } = user;
+    
+    // Establecer el token en una cookie segura
+    res.cookie('auth_token', token, {
+      httpOnly: true,          // No accesible desde JavaScript
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite: 'strict',      // Protección contra CSRF
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas en milisegundos
+    });
+    
+    // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
+    res.json({ 
+      success: true,
+      message: 'Inicio de sesión exitoso',
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error('Error en login:', error);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  // Eliminar la cookie de autenticación
+  res.clearCookie('auth_token');
+  
+  // Enviar respuesta de éxito
+  res.json({ 
+    success: true, 
+    message: 'Sesión cerrada correctamente' 
+  });
+};
+
+// Función para obtener el usuario actual basado en el token
+export const getCurrentUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // El middleware auth ya ha verificado el token y añadido el userId a req
+    const userId = (req as any).user?.userId;
+    
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado' });
+      return;
+    }
+    
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        // No incluimos updatedAt porque no existe en el modelo
+      }
+    });
+    
+    if (!user) {
+      res.status(404).json({ error: 'Usuario no encontrado' });
+      return;
+    }
+    
+    res.json({ user });
+  } catch (error) {
+    console.error('Error al obtener usuario actual:', error);
+    res.status(500).json({ error: 'Error al obtener información del usuario' });
+  }
+};
+
+// Función para refrescar el token de autenticación
+export const refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // Obtener el token de la cookie
+    const token = req.cookies.auth_token;
+    
+    if (!token) {
+      res.status(401).json({ error: 'No hay token para refrescar' });
+      return;
+    }
+    
+    // Verificar el token actual
+    try {
+      const decoded = verifyToken(token);
+      const userId = decoded.userId;
+      
+      // Buscar el usuario para asegurarnos de que existe
+      const user = await prisma.user.findUnique({ 
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          lastname: true,
+          email: true,
+          createdAt: true
+        }
+      });
+      
+      if (!user) {
+        res.status(404).json({ error: 'Usuario no encontrado' });
+        return;
+      }
+      
+      // Generar un nuevo token
+      const newToken = signToken({ userId });
+      
+      // Establecer el nuevo token en una cookie
+      res.cookie('auth_token', newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+      });
+      
+      // Enviar respuesta con datos del usuario
+      res.json({ 
+        success: true,
+        message: 'Token refrescado correctamente',
+        user
+      });
+    } catch (error) {
+      // Si hay un error al verificar el token (expirado o inválido)
+      res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+  } catch (error) {
+    console.error('Error al refrescar token:', error);
+    res.status(500).json({ error: 'Error al refrescar el token' });
   }
 };

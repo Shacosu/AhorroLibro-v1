@@ -14,12 +14,113 @@ const limiter = new Bottleneck({
   minTime: 200
 });
 
-export const getAllBooks = async (req: Request, res: Response) => {
+export const getAllBooks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const books = await prisma.book.findMany();
-    res.json(books);
+    // Obtener parámetros de paginación de la consulta
+    const page = parseInt(req.query.page as string) || 1;
+    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    console.log(req)
+    // Obtener el userId del token JWT (añadido por el middleware de autenticación)
+    const userId = (req as any).user?.userId;
+    
+    // Validar que se tenga un userId (debería estar presente si pasó por el middleware de autenticación)
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado. Se requiere autenticación.' });
+      return;
+    }
+    
+    // Calcular el número de elementos a omitir
+    const skip = (page - 1) * pageSize;
+    
+    // Construir la consulta base para los libros del usuario
+    const baseQuery = {
+      where: {
+        users: {
+          some: {
+            userId: userId
+          }
+        }
+      }
+    };
+    
+    // Obtener el total de libros para calcular el total de páginas
+    const totalBooks = await prisma.book.count(baseQuery);
+    const totalPages = Math.ceil(totalBooks / pageSize);
+    
+    // Obtener los libros del usuario con paginación
+    const userBooks = await prisma.book.findMany({
+      ...baseQuery,
+      skip,
+      take: pageSize,
+      orderBy: {
+        title: 'asc'
+      },
+      include: {
+        priceHistories: {
+          orderBy: {
+            date: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
+    
+    // Procesar los resultados para incluir precio mínimo y precio actual
+    const booksWithPriceInfo = await Promise.all(userBooks.map(async (book) => {
+      // Obtener el historial de precios para encontrar el mínimo (ignorando ceros)
+      const priceHistory = await prisma.priceHistory.findMany({
+        where: {
+          bookId: book.id,
+          price: {
+            gt: 0 // Ignorar precios de 0
+          }
+        },
+        orderBy: {
+          price: 'asc'
+        },
+        take: 1
+      });
+      
+      // Precio mínimo (si existe)
+      const minPrice = priceHistory.length > 0 ? priceHistory[0].price : null;
+      
+      // Precio actual (del último registro en priceHistories)
+      const bookWithPriceHistories = book as any;
+      const currentPrice = bookWithPriceHistories.priceHistories && 
+                          bookWithPriceHistories.priceHistories.length > 0 ? 
+                          bookWithPriceHistories.priceHistories[0].price : 
+                          book.price;
+      
+      // Eliminar el array de priceHistories para no duplicar información
+      const { priceHistories, ...bookData } = bookWithPriceHistories;
+      
+      // Retornar el libro con la información de precios
+      return {
+        ...bookData,
+        minPrice,
+        currentPrice
+      };
+    }));
+    
+    // Calcular nextPage y previousPage
+    const nextPage = page < totalPages ? page + 1 : null;
+    const previousPage = page > 1 ? page - 1 : null;
+    
+    // Enviar respuesta con paginación y datos de precios
+    res.json({
+      data: booksWithPriceInfo,
+      pagination: {
+        totalItems: totalBooks,
+        totalPages,
+        currentPage: page,
+        pageSize,
+        nextPage,
+        previousPage
+      }
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching books' });
+    console.error('Error al obtener libros:', error);
+    res.status(500).json({ error: 'Error al obtener libros' });
   }
 };
 
@@ -209,6 +310,15 @@ export const monitorBooks = async (req: Request, res: Response) => {
             skip: 1, // skip the current price
           });
 
+          // Obtener el precio más bajo histórico (excluyendo precios 0)
+          const lowestPrice = await prisma.priceHistory.findFirst({
+            where: { 
+              bookId: book.id,
+              price: { gt: 0 } // Ignorar precios de 0 (no disponible)
+            },
+            orderBy: { price: 'asc' },
+          });
+
           // Crear objeto con la información del libro para el correo
           const bookInfo = {
             title: book.title,
@@ -220,7 +330,9 @@ export const monitorBooks = async (req: Request, res: Response) => {
             link: book.link || '#',
             description: book.description,
             details: `ISBN: ${book.isbn13}, Detalles adicionales: ${book.details || 'No disponibles'}`,
-            previousPrices: previousPrices.map(ph => ({ price: ph.price, date: ph.date }))
+            previousPrices: previousPrices.map(ph => ({ price: ph.price, date: ph.date })),
+            lowestPrice: lowestPrice ? lowestPrice.price : null,
+            lowestPriceDate: lowestPrice ? lowestPrice.date : null
           };
 
           // Iterar sobre todos los usuarios asociados al libro

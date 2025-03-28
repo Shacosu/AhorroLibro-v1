@@ -24,6 +24,8 @@ export interface BookDiscountInfo {
   description?: string;
   details?: string;
   previousPrices?: { price: number; date: Date }[];
+  lowestPrice?: number | null;
+  lowestPriceDate?: Date | null;
 }
 
 export const sendDiscountEmail = (bookInfo: BookDiscountInfo, user: User) => {
