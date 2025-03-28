@@ -405,14 +405,13 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
         
         ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
         
-        <div class="price-info">
-          <span class="price-label">Precio anterior:</span>
-          <span class="price-value">${formattedLastPrice}</span>
-        </div>
         <div class="price-info" style="flex-direction: column;">
           <div style="display: flex; justify-content: space-between; width: 100%;">
-            <span class="price-label">Precio actual:</span> 
-            <span class="price-value">${formattedCurrentPrice}</span>
+            <span class="price-label">Precio:</span>
+            <div style="text-align: right;">
+              <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 2px;">${formattedLastPrice}</div>
+              <span class="price-value">${formattedCurrentPrice}</span>
+            </div>
           </div>
           <p class="discount" style="margin: 5px 0 0 0; text-align: right;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
         </div>
