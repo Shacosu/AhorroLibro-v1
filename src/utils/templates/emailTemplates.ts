@@ -27,8 +27,8 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Historial de Precios</h4>
       ${pricesToShow.map((priceItem, index) => `
         <div class="price-info" style="margin-bottom: ${index === pricesToShow.length - 1 ? '0' : '5px'};">
-          <span class="price-label">${new Date(priceItem.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}:</span>
-          <span class="price-value">$${priceItem.price.toLocaleString()}</span>
+          <span class="price-label">Precio anterior:</span>
+          <span class="price-value" style="text-decoration: line-through;">$${priceItem.price.toLocaleString()}</span>
         </div>
       `).join('')}
     </div>`;
@@ -41,9 +41,9 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
     const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
     
     lowestPriceHTML = `
-    <div class="price-info" style="background-color: #e6f7ff; border-left: 4px solid #1890ff;">
-      <p class="price-label">Precio más bajo histórico: <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice}</span></p>
-      <p style="font-size: 0.8em;">(${formattedLowestPriceDate})</p>
+    <div class="price-info" style="background-color: rgba(0, 78, 89, 0.1); border-left: 4px solid #004E59; padding: 10px;">
+      <span class="price-label">Precio mínimo:</span>
+      <span class="price-value" style="color: #004E59; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
     </div>`;
   }
 
@@ -118,14 +118,16 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       line-height: 1.5;
     }
     .price-info {
+      display: flex;
+      justify-content: space-between;
       margin: 10px 0;
       padding: 10px;
-      background-color: #f0f0f0;
+      background-color: rgba(0, 78, 89, 0.05);
       border-radius: 5px;
     }
     .price-label {
       font-weight: bold;
-      color: #555;
+      color: #004E59;
       font-size: 0.95em;
     }
     .price-value {
@@ -169,6 +171,29 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       background-color: #f5f5f5;
       border-radius: 5px;
     }
+    @media only screen and (max-width: 480px) {
+      .container {
+        padding: 10px;
+      }
+      .header {
+        padding: 15px 10px;
+      }
+      .book-header {
+        flex-direction: column;
+      }
+      .book-image {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto 15px;
+      }
+      .book-details {
+        width: 100%;
+        text-align: center;
+      }
+      .price-info {
+        padding: 8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -193,11 +218,11 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
         ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
         
         <div class="price-info">
-          <span class="price-label">Precio Anterior:</span>
+          <span class="price-label">Precio anterior:</span>
           <span class="price-value">${formattedLastPrice}</span>
         </div>
         <div class="price-info">
-          <span class="price-label">Precio Actual:</span> 
+          <span class="price-label">Precio actual:</span> 
           <span class="price-value">${formattedCurrentPrice}</span>
           <span class="discount">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span>
         </div>
@@ -248,9 +273,9 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
     const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
     
     lowestPriceHTML = `
-    <div class="price-info" style="background-color: #e6f7ff; border-left: 4px solid #1890ff;">
-      <span class="price-label">Precio más bajo histórico:</span>
-      <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
+    <div class="price-info" style="background-color: rgba(0, 78, 89, 0.1); border-left: 4px solid #004E59; padding: 10px;">
+      <span class="price-label">Precio mínimo:</span>
+      <span class="price-value" style="color: #004E59; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
     </div>`;
   }
 
@@ -329,12 +354,12 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         justify-content: space-between;
         margin: 10px 0;
         padding: 10px;
-        background-color: #f0f0f0;
+        background-color: rgba(0, 78, 89, 0.05);
         border-radius: 5px;
       }
       .price-label {
         font-weight: bold;
-        color: #555;
+        color: #004E59;
         font-size: 0.95em;
       }
       .price-value {
@@ -375,6 +400,29 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         margin-bottom: 10px;
         font-size: 15px;
       }
+      @media only screen and (max-width: 480px) {
+        .container {
+          padding: 10px;
+        }
+        .header {
+          padding: 15px 10px;
+        }
+        .book-header {
+          flex-direction: column;
+        }
+        .book-image {
+          width: 100%;
+          max-width: 200px;
+          margin: 0 auto 15px;
+        }
+        .book-details {
+          width: 100%;
+          text-align: center;
+        }
+        .price-info {
+          padding: 8px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -400,7 +448,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
           ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
           
           <div class="price-info">
-            <span class="price-label">Precio Actual:</span>
+            <span class="price-label">Precio actual:</span>
             <span class="price-value">${formattedCurrentPrice}</span>
           </div>
           
