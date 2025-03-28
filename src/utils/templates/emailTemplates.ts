@@ -9,9 +9,11 @@ import { BookDiscountInfo } from '../emailUtils';
 const formatBookDetails = (details: string): string => {
   if (!details) return '';
   
+  // Limpieza inicial y normalización
+  let formattedDetails = details.replace(/,\s*/g, ' ').trim();
+  
   // Extraer ISBN si está al principio
-  let formattedDetails = details;
-  let isbnMatch = details.match(/^ISBN:\s*([^,]+),?\s*/);
+  let isbnMatch = formattedDetails.match(/^ISBN:\s*([^\s]+)\s*/);
   let isbn = '';
   
   if (isbnMatch) {
@@ -25,19 +27,19 @@ const formatBookDetails = (details: string): string => {
     formattedDetails = formattedDetails.replace(detailsPrefix, '').trim();
   }
   
-  // Patrones comunes en los detalles del libro
-  const patterns = [
-    { regex: /\bFormato\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Formato' },
-    { regex: /\bAutor\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Autor' },
-    { regex: /\bEditorial\b:?\s*([^A-Z]+(?:Editorial [^A-Z]+)?)(?=[A-Z]|$)/i, label: 'Editorial' },
-    { regex: /\bAño\b:?\s*(\d+)(?=[A-Z]|$)/i, label: 'Año' },
-    { regex: /\bIdioma\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Idioma' },
-    { regex: /\bN°\s*páginas\b:?\s*(\d+)(?=[A-Z]|$)/i, label: 'N° páginas' },
-    { regex: /\bEncuadernaci[óo]n\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Encuadernación' },
-    { regex: /\bDimensiones\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Dimensiones' },
-    { regex: /\bPeso\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Peso' },
-    { regex: /\bISBN13\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'ISBN13' },
-    { regex: /\bCategorías\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Categorías' }
+  // Definir pares clave-valor conocidos
+  const knownPairs = [
+    { key: 'Formato', value: '' },
+    { key: 'Autor', value: '' },
+    { key: 'Editorial', value: '' },
+    { key: 'Año', value: '' },
+    { key: 'Idioma', value: '' },
+    { key: 'N° páginas', value: '' },
+    { key: 'Encuadernación', value: '' },
+    { key: 'Dimensiones', value: '' },
+    { key: 'Peso', value: '' },
+    { key: 'ISBN13', value: '' },
+    { key: 'Categorías', value: '' }
   ];
   
   // Construir el HTML formateado
@@ -48,54 +50,89 @@ const formatBookDetails = (details: string): string => {
     htmlDetails += `<div class="detail-item"><span class="detail-label">ISBN:</span> <span class="detail-value">${isbn}</span></div>`;
   }
   
-  // Extraer y formatear cada detalle
-  patterns.forEach(({ regex, label }) => {
-    const match = formattedDetails.match(regex);
-    if (match && match[1]) {
-      const value = match[1].trim();
-      htmlDetails += `<div class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></div>`;
-      
-      // Eliminar el detalle encontrado para evitar duplicados
-      formattedDetails = formattedDetails.replace(regex, '');
-    }
-  });
+  // Enfoque más robusto: dividir por palabras clave conocidas
+  // Primero, crear un patrón regex para encontrar todas las palabras clave
+  const keywordsPattern = new RegExp(
+    '\\b(' + knownPairs.map(pair => pair.key).join('|') + ')\\b', 'g'
+  );
   
-  // Si aún hay texto no procesado, intentar un enfoque diferente
-  if (formattedDetails.trim()) {
-    // Intentar separar por palabras que comienzan con mayúscula
-    const keywordMatches = formattedDetails.match(/[A-Z][a-zá-úÁ-Ú]+(?:\s+[a-zá-úÁ-Ú]+)*(?=\s+[A-Z]|$)/g);
-    
-    if (keywordMatches && keywordMatches.length > 0) {
-      // Extraer los valores entre palabras clave
-      let lastIndex = 0;
-      let lastKeyword = '';
+  // Encontrar todas las ocurrencias de palabras clave
+  const matches = [...formattedDetails.matchAll(new RegExp(keywordsPattern, 'g'))];
+  
+  if (matches && matches.length > 0) {
+    for (let i = 0; i < matches.length; i++) {
+      const currentMatch = matches[i];
+      const currentKeyword = currentMatch[0];
+      const currentIndex = currentMatch.index;
       
-      for (let i = 0; i < keywordMatches.length; i++) {
-        const keyword = keywordMatches[i];
-        const keywordIndex = formattedDetails.indexOf(keyword, lastIndex);
-        
-        // Si no es el primer keyword y tenemos un keyword anterior, extraer el valor
-        if (lastKeyword && keywordIndex > lastIndex) {
-          const value = formattedDetails.substring(lastIndex, keywordIndex).trim();
-          if (value && !value.endsWith(':')) {
-            htmlDetails += `<div class="detail-item"><span class="detail-label">${lastKeyword}:</span> <span class="detail-value">${value}</span></div>`;
-          }
-        }
-        
-        lastIndex = keywordIndex + keyword.length;
-        lastKeyword = keyword;
+      // Determinar dónde termina el valor (hasta la próxima palabra clave o el final)
+      let endIndex = formattedDetails.length;
+      if (i < matches.length - 1) {
+        endIndex = matches[i + 1].index;
       }
       
-      // Procesar el último keyword
-      if (lastKeyword && lastIndex < formattedDetails.length) {
-        const value = formattedDetails.substring(lastIndex).trim();
-        if (value && !value.endsWith(':')) {
-          htmlDetails += `<div class="detail-item"><span class="detail-label">${lastKeyword}:</span> <span class="detail-value">${value}</span></div>`;
+      // Extraer el valor
+      let value = formattedDetails.substring(currentIndex + currentKeyword.length, endIndex).trim();
+      
+      // Limpiar el valor (quitar ":" si existe)
+      value = value.replace(/^:\s*/, '');
+      
+      // Casos especiales
+      if (currentKeyword === 'Editorial' && value.includes('Año')) {
+        const parts = value.split('Año');
+        value = parts[0].trim();
+        
+        // Añadir el año como un detalle separado si contiene un número
+        const yearMatch = parts[1]?.match(/\d+/);
+        if (yearMatch) {
+          const yearValue = yearMatch[0];
+          htmlDetails += `<div class="detail-item"><span class="detail-label">Año:</span> <span class="detail-value">${yearValue}</span></div>`;
+        }
+      } else if (currentKeyword === 'Idioma' && value.includes('N° páginas')) {
+        const parts = value.split('N° páginas');
+        value = parts[0].trim();
+        
+        // Añadir páginas como un detalle separado si contiene un número
+        const pagesMatch = parts[1]?.match(/\d+/);
+        if (pagesMatch) {
+          const pagesValue = pagesMatch[0];
+          htmlDetails += `<div class="detail-item"><span class="detail-label">N° páginas:</span> <span class="detail-value">${pagesValue}</span></div>`;
+        }
+      } else if (currentKeyword === 'Encuadernación' && value.includes('Dimensiones')) {
+        const parts = value.split('Dimensiones');
+        value = parts[0].trim();
+      } else if (currentKeyword === 'Dimensiones' && value.includes('Peso')) {
+        const parts = value.split('Peso');
+        value = parts[0].trim();
+        
+        // Añadir peso como un detalle separado
+        const pesoMatch = parts[1]?.match(/[\d.]+/);
+        if (pesoMatch) {
+          const pesoValue = pesoMatch[0];
+          htmlDetails += `<div class="detail-item"><span class="detail-label">Peso:</span> <span class="detail-value">${pesoValue}</span></div>`;
         }
       }
-    } else {
-      // Si no se pueden identificar keywords, mostrar el texto restante como está
-      htmlDetails += `<div class="detail-item">${formattedDetails.trim()}</div>`;
+      
+      // Añadir el detalle al HTML si tiene valor
+      if (value) {
+        htmlDetails += `<div class="detail-item"><span class="detail-label">${currentKeyword}:</span> <span class="detail-value">${value}</span></div>`;
+      }
+    }
+  }
+  
+  // Buscar ISBN13 específicamente si no se encontró antes
+  if (!formattedDetails.includes('ISBN13:') && formattedDetails.includes('ISBN13')) {
+    const isbn13Match = formattedDetails.match(/ISBN13\s+(\d+)/);
+    if (isbn13Match && isbn13Match[1]) {
+      htmlDetails += `<div class="detail-item"><span class="detail-label">ISBN13:</span> <span class="detail-value">${isbn13Match[1]}</span></div>`;
+    }
+  }
+  
+  // Buscar Categorías específicamente
+  if (formattedDetails.includes('Categorías')) {
+    const categoriasMatch = formattedDetails.match(/Categorías\s+([^A-Z]+)(?=[A-Z]|$)/);
+    if (categoriasMatch && categoriasMatch[1]) {
+      htmlDetails += `<div class="detail-item"><span class="detail-label">Categorías:</span> <span class="detail-value">${categoriasMatch[1].trim()}</span></div>`;
     }
   }
   
@@ -288,6 +325,14 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       background-color: #f5f5f5;
       border-radius: 5px;
     }
+    .image-click-hint {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-top: 5px;
+      font-style: italic;
+    }
     @media only screen and (max-width: 480px) {
       .container {
         padding: 10px;
@@ -325,7 +370,10 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       
       <div class="book-info">
         <div class="book-header">
-          <img src="${imageUrl}" alt="${title}" class="book-image">
+          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank">
+            <img src="${imageUrl}" alt="${title}" class="book-image">
+            <span class="image-click-hint">Click en la imagen para ver el libro</span>
+          </a>
           <div class="book-details">
             <h3 class="book-title">${title}</h3>
             <p class="book-author">Autor: ${author}</p>
@@ -535,6 +583,14 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         margin-bottom: 10px;
         font-size: 15px;
       }
+      .image-click-hint {
+        display: block;
+        font-size: 11px;
+        color: #666;
+        text-align: center;
+        margin-top: 5px;
+        font-style: italic;
+      }
       @media only screen and (max-width: 480px) {
         .container {
           padding: 10px;
@@ -572,7 +628,10 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         
         <div class="book-info">
           <div class="book-header">
-            <img src="${imageUrl}" alt="${title}" class="book-image">
+            <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank">
+              <img src="${imageUrl}" alt="${title}" class="book-image">
+              <span class="image-click-hint">Click en la imagen para ver el libro</span>
+            </a>
             <div class="book-details">
               <h3 class="book-title">${title}</h3>
               <p class="book-author">Autor: ${author}</p>
