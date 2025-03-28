@@ -42,188 +42,190 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
     
     lowestPriceHTML = `
     <div class="price-info" style="background-color: #e6f7ff; border-left: 4px solid #1890ff;">
-      <span class="price-label">Precio más bajo histórico:</span>
-      <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice} <span style="font-size: 0.8em;">(${formattedLowestPriceDate})</span></span>
+      <p class="price-label">Precio más bajo histórico: <span class="price-value" style="color: #1890ff; font-size: 0.95em;">${formattedLowestPrice}</span></p>
+      <p style="font-size: 0.8em;">(${formattedLowestPriceDate})</p>
     </div>`;
   }
 
   return `
   <!DOCTYPE html>
-  <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Descuento en Libro</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        margin: 0;
-        padding: 0;
-      }
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      .header {
-        background-color: #004E59;
-        color: white;
-        padding: 20px;
-        text-align: center;
-        border-radius: 5px 5px 0 0;
-      }
-      .content {
-        padding: 20px;
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-top: none;
-        border-radius: 0 0 5px 5px;
-      }
-      .book-info {
-        margin: 20px 0;
-        padding: 15px;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      }
-      .book-header {
-        display: flex;
-        margin-bottom: 15px;
-      }
-      .book-image {
-        width: 120px;
-        height: auto;
-        margin-right: 15px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        object-fit: cover;
-      }
-      .book-details {
-        flex: 1;
-      }
-      .book-title {
-        margin: 0 0 5px 0;
-        color: #004E59;
-      }
-      .book-author {
-        margin: 0 0 10px 0;
-        color: #666;
-        font-style: italic;
-      }
-      .book-description {
-        margin: 15px 0;
-        font-size: 14px;
-        line-height: 1.5;
-      }
-      .price-info {
-        display: flex;
-        justify-content: space-between;
-        margin: 10px 0;
-        padding: 10px;
-        background-color: #f0f0f0;
-        border-radius: 5px;
-      }
-      .price-label {
-        font-weight: bold;
-        color: #555;
-        font-size: 0.95em;
-      }
-      .price-value {
-        font-weight: bold;
-        color: #004E59;
-        font-size: 0.95em;
-      }
-      .discount {
-        color: #E53935;
-        font-weight: bold;
-      }
-      .footer {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 12px;
-        color: #777;
-      }
-      .button {
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #004E59;
-        color: white !important;
-        text-decoration: none !important;
-        border-radius: 5px;
-        font-weight: bold;
-        margin-top: 15px;
-      }
-      .details-section {
-        margin-top: 15px;
-        padding: 10px;
-        background-color: #f5f5f5;
-        border-radius: 5px;
-        font-size: 13px;
-      }
-      .previous-prices {
-        margin-top: 15px;
-        padding: 10px;
-        background-color: #f5f5f5;
-        border-radius: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>¡Descuento Detectado!</h1>
-        <p>Hemos encontrado un descuento en un libro de tu lista de seguimiento</p>
-      </div>
-      <div class="content">
-        <h2>Hola ${user.name},</h2>
-        <p>¡Buenas noticias! El libro que estás siguiendo tiene un descuento:</p>
-        
-        <div class="book-info">
-          <div class="book-header">
-            <img src="${imageUrl}" alt="${title}" class="book-image">
-            <div class="book-details">
-              <h3 class="book-title">${title}</h3>
-              <p class="book-author">Autor: ${author}</p>
-            </div>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descuento en Libro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #004E59;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+    }
+    .content {
+      padding: 20px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+    }
+    .book-info {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .book-header {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    .book-image {
+      width: 120px;
+      height: auto;
+      margin-right: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      object-fit: cover;
+    }
+    .book-details {
+      flex: 1;
+    }
+    .book-title {
+      margin: 0 0 5px 0;
+      color: #004E59;
+    }
+    .book-author {
+      margin: 0 0 10px 0;
+      color: #666;
+      font-style: italic;
+    }
+    .book-description {
+      margin: 15px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .price-info {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+    }
+    .price-label {
+      font-weight: bold;
+      color: #555;
+      font-size: 0.95em;
+    }
+    .price-value {
+      font-weight: bold;
+      color: #004E59;
+      font-size: 0.95em;
+    }
+    .discount {
+      color: #E53935;
+      font-weight: bold;
+      font-size: 0.85em;
+      margin-top: 3px;
+      display: block;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #004E59;
+      color: white !important;
+      text-decoration: none !important;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    .details-section {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    .previous-prices {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>¡Descuento Detectado!</h1>
+      <p>Hemos encontrado un descuento en un libro de tu lista de seguimiento</p>
+    </div>
+    <div class="content">
+      <h2>Hola ${user.name},</h2>
+      <p>¡Buenas noticias! El libro que estás siguiendo tiene un descuento:</p>
+      
+      <div class="book-info">
+        <div class="book-header">
+          <img src="${imageUrl}" alt="${title}" class="book-image">
+          <div class="book-details">
+            <h3 class="book-title">${title}</h3>
+            <p class="book-author">Autor: ${author}</p>
           </div>
-          
-          ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
-          
-          <div class="price-info">
-            <span class="price-label">Precio Anterior:</span>
-            <span class="price-value">${formattedLastPrice}</span>
-          </div>
-          <div class="price-info">
-            <span class="price-label">Precio Actual:</span>
-            <span class="price-value discount">${formattedCurrentPrice} <span style="font-size: 0.85em;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span></span>
-          </div>
-          ${lowestPriceHTML}
-          ${previousPricesHTML}
-          
-          ${details ? `
-          <div class="details-section">
-            <strong>Detalles del libro:</strong><br>
-            ${details}
-          </div>` : ''}
         </div>
         
-        <p>Este descuento supera tu configuración de notificación de ${user.discountPercentage}%.</p>
+        ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
         
-        <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
-        
-        <div style="text-align: center;">
-          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
+        <div class="price-info">
+          <span class="price-label">Precio Anterior:</span>
+          <span class="price-value">${formattedLastPrice}</span>
         </div>
+        <div class="price-info">
+          <span class="price-label">Precio Actual:</span> 
+          <span class="price-value">${formattedCurrentPrice}</span>
+          <span class="discount">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span>
+        </div>
+        ${lowestPriceHTML}
+        ${previousPricesHTML}
+        
+        ${details ? `
+        <div class="details-section">
+          <strong>Detalles del libro:</strong><br>
+          ${details}
+        </div>` : ''}
       </div>
-      <div class="footer">
-        <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
-        <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
+      
+      <p>Este descuento supera tu configuración de notificación de ${user.discountPercentage}%.</p>
+      
+      <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
+      
+      <div style="text-align: center;">
+        <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
       </div>
     </div>
-  </body>
-  </html>
+    <div class="footer">
+      <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
+      <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
+    </div>
+  </div>
+</body>
+</html>
   `;
 };
 
@@ -371,6 +373,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         font-weight: bold;
         display: inline-block;
         margin-bottom: 10px;
+        font-size: 15px;
       }
     </style>
   </head>
