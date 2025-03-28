@@ -27,17 +27,17 @@ const formatBookDetails = (details: string): string => {
   
   // Patrones comunes en los detalles del libro
   const patterns = [
-    { regex: /\bFormato\b:?\s*([^,]+),?/i, label: 'Formato' },
-    { regex: /\bAutor\b:?\s*([^,]+),?/i, label: 'Autor' },
-    { regex: /\bEditorial\b:?\s*([^,]+),?/i, label: 'Editorial' },
-    { regex: /\bAño\b:?\s*(\d+),?/i, label: 'Año' },
-    { regex: /\bIdioma\b:?\s*([^,]+),?/i, label: 'Idioma' },
-    { regex: /\bN°\s*páginas\b:?\s*(\d+),?/i, label: 'N° páginas' },
-    { regex: /\bEncuadernaci[óo]n\b:?\s*([^,]+),?/i, label: 'Encuadernación' },
-    { regex: /\bDimensiones\b:?\s*([^,]+),?/i, label: 'Dimensiones' },
-    { regex: /\bPeso\b:?\s*([^,]+),?/i, label: 'Peso' },
-    { regex: /\bISBN13\b:?\s*([^,]+),?/i, label: 'ISBN13' },
-    { regex: /\bCategorías\b:?\s*([^,]+),?/i, label: 'Categorías' }
+    { regex: /\bFormato\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Formato' },
+    { regex: /\bAutor\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Autor' },
+    { regex: /\bEditorial\b:?\s*([^A-Z]+(?:Editorial [^A-Z]+)?)(?=[A-Z]|$)/i, label: 'Editorial' },
+    { regex: /\bAño\b:?\s*(\d+)(?=[A-Z]|$)/i, label: 'Año' },
+    { regex: /\bIdioma\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Idioma' },
+    { regex: /\bN°\s*páginas\b:?\s*(\d+)(?=[A-Z]|$)/i, label: 'N° páginas' },
+    { regex: /\bEncuadernaci[óo]n\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Encuadernación' },
+    { regex: /\bDimensiones\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Dimensiones' },
+    { regex: /\bPeso\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Peso' },
+    { regex: /\bISBN13\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'ISBN13' },
+    { regex: /\bCategorías\b:?\s*([^A-Z]+)(?=[A-Z]|$)/i, label: 'Categorías' }
   ];
   
   // Construir el HTML formateado
@@ -60,25 +60,43 @@ const formatBookDetails = (details: string): string => {
     }
   });
   
-  // Procesar cualquier texto restante como detalles adicionales
-  formattedDetails = formattedDetails.trim();
-  if (formattedDetails) {
-    // Intentar dividir el texto restante en pares clave-valor
-    const remainingPairs = formattedDetails.split(/\s+(?=[A-Z][a-zá-úÁ-Ú]+:?\s)/);
+  // Si aún hay texto no procesado, intentar un enfoque diferente
+  if (formattedDetails.trim()) {
+    // Intentar separar por palabras que comienzan con mayúscula
+    const keywordMatches = formattedDetails.match(/[A-Z][a-zá-úÁ-Ú]+(?:\s+[a-zá-úÁ-Ú]+)*(?=\s+[A-Z]|$)/g);
     
-    remainingPairs.forEach(pair => {
-      pair = pair.trim();
-      if (pair) {
-        const keyValueMatch = pair.match(/^([^:]+):?\s*(.+)$/);
-        if (keyValueMatch) {
-          const [, key, value] = keyValueMatch;
-          htmlDetails += `<div class="detail-item"><span class="detail-label">${key}:</span> <span class="detail-value">${value}</span></div>`;
-        } else {
-          // Si no se puede dividir, agregar como texto plano
-          htmlDetails += `<div class="detail-item">${pair}</div>`;
+    if (keywordMatches && keywordMatches.length > 0) {
+      // Extraer los valores entre palabras clave
+      let lastIndex = 0;
+      let lastKeyword = '';
+      
+      for (let i = 0; i < keywordMatches.length; i++) {
+        const keyword = keywordMatches[i];
+        const keywordIndex = formattedDetails.indexOf(keyword, lastIndex);
+        
+        // Si no es el primer keyword y tenemos un keyword anterior, extraer el valor
+        if (lastKeyword && keywordIndex > lastIndex) {
+          const value = formattedDetails.substring(lastIndex, keywordIndex).trim();
+          if (value && !value.endsWith(':')) {
+            htmlDetails += `<div class="detail-item"><span class="detail-label">${lastKeyword}:</span> <span class="detail-value">${value}</span></div>`;
+          }
+        }
+        
+        lastIndex = keywordIndex + keyword.length;
+        lastKeyword = keyword;
+      }
+      
+      // Procesar el último keyword
+      if (lastKeyword && lastIndex < formattedDetails.length) {
+        const value = formattedDetails.substring(lastIndex).trim();
+        if (value && !value.endsWith(':')) {
+          htmlDetails += `<div class="detail-item"><span class="detail-label">${lastKeyword}:</span> <span class="detail-value">${value}</span></div>`;
         }
       }
-    });
+    } else {
+      // Si no se pueden identificar keywords, mostrar el texto restante como está
+      htmlDetails += `<div class="detail-item">${formattedDetails.trim()}</div>`;
+    }
   }
   
   return htmlDetails;
