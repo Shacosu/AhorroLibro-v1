@@ -2,6 +2,89 @@ import { User } from '@prisma/client';
 import { BookDiscountInfo } from '../emailUtils';
 
 /**
+ * Formatea los detalles del libro para una mejor presentación
+ * @param details String con los detalles del libro
+ * @returns HTML formateado con los detalles del libro
+ */
+const formatBookDetails = (details: string): string => {
+  if (!details) return '';
+  
+  // Extraer ISBN si está al principio
+  let formattedDetails = details;
+  let isbnMatch = details.match(/^ISBN:\s*([^,]+),?\s*/);
+  let isbn = '';
+  
+  if (isbnMatch) {
+    isbn = isbnMatch[1].trim();
+    formattedDetails = formattedDetails.replace(isbnMatch[0], '');
+  }
+  
+  // Extraer "Detalles adicionales:" si está presente
+  const detailsPrefix = 'Detalles adicionales:';
+  if (formattedDetails.includes(detailsPrefix)) {
+    formattedDetails = formattedDetails.replace(detailsPrefix, '').trim();
+  }
+  
+  // Patrones comunes en los detalles del libro
+  const patterns = [
+    { regex: /\bFormato\b:?\s*([^,]+),?/i, label: 'Formato' },
+    { regex: /\bAutor\b:?\s*([^,]+),?/i, label: 'Autor' },
+    { regex: /\bEditorial\b:?\s*([^,]+),?/i, label: 'Editorial' },
+    { regex: /\bAño\b:?\s*(\d+),?/i, label: 'Año' },
+    { regex: /\bIdioma\b:?\s*([^,]+),?/i, label: 'Idioma' },
+    { regex: /\bN°\s*páginas\b:?\s*(\d+),?/i, label: 'N° páginas' },
+    { regex: /\bEncuadernaci[óo]n\b:?\s*([^,]+),?/i, label: 'Encuadernación' },
+    { regex: /\bDimensiones\b:?\s*([^,]+),?/i, label: 'Dimensiones' },
+    { regex: /\bPeso\b:?\s*([^,]+),?/i, label: 'Peso' },
+    { regex: /\bISBN13\b:?\s*([^,]+),?/i, label: 'ISBN13' },
+    { regex: /\bCategorías\b:?\s*([^,]+),?/i, label: 'Categorías' }
+  ];
+  
+  // Construir el HTML formateado
+  let htmlDetails = '';
+  
+  // Añadir ISBN si se encontró
+  if (isbn) {
+    htmlDetails += `<div class="detail-item"><span class="detail-label">ISBN:</span> <span class="detail-value">${isbn}</span></div>`;
+  }
+  
+  // Extraer y formatear cada detalle
+  patterns.forEach(({ regex, label }) => {
+    const match = formattedDetails.match(regex);
+    if (match && match[1]) {
+      const value = match[1].trim();
+      htmlDetails += `<div class="detail-item"><span class="detail-label">${label}:</span> <span class="detail-value">${value}</span></div>`;
+      
+      // Eliminar el detalle encontrado para evitar duplicados
+      formattedDetails = formattedDetails.replace(regex, '');
+    }
+  });
+  
+  // Procesar cualquier texto restante como detalles adicionales
+  formattedDetails = formattedDetails.trim();
+  if (formattedDetails) {
+    // Intentar dividir el texto restante en pares clave-valor
+    const remainingPairs = formattedDetails.split(/\s+(?=[A-Z][a-zá-úÁ-Ú]+:?\s)/);
+    
+    remainingPairs.forEach(pair => {
+      pair = pair.trim();
+      if (pair) {
+        const keyValueMatch = pair.match(/^([^:]+):?\s*(.+)$/);
+        if (keyValueMatch) {
+          const [, key, value] = keyValueMatch;
+          htmlDetails += `<div class="detail-item"><span class="detail-label">${key}:</span> <span class="detail-value">${value}</span></div>`;
+        } else {
+          // Si no se puede dividir, agregar como texto plano
+          htmlDetails += `<div class="detail-item">${pair}</div>`;
+        }
+      }
+    });
+  }
+  
+  return htmlDetails;
+};
+
+/**
  * Genera el HTML para el correo de descuento
  * @param bookInfo Información del libro
  * @param user Usuario al que se enviará el correo
@@ -162,10 +245,24 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
     }
     .details-section {
       margin-top: 15px;
-      padding: 10px;
-      background-color: #f5f5f5;
+      padding: 15px;
+      background-color: rgba(0, 78, 89, 0.03);
       border-radius: 5px;
-      font-size: 13px;
+    }
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+    }
+    .detail-item {
+      margin-bottom: 5px;
+    }
+    .detail-label {
+      font-weight: bold;
+      color: #004E59;
+    }
+    .detail-value {
+      color: #333;
     }
     .previous-prices {
       margin-top: 15px;
@@ -235,8 +332,10 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
         
         ${details ? `
         <div class="details-section">
-          <strong>Detalles del libro:</strong><br>
-          ${details}
+          <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
+          <div class="details-grid">
+            ${formatBookDetails(details)}
+          </div>
         </div>` : ''}
       </div>
       
@@ -389,10 +488,24 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
       }
       .details-section {
         margin-top: 15px;
-        padding: 10px;
-        background-color: #f5f5f5;
+        padding: 15px;
+        background-color: rgba(0, 78, 89, 0.03);
         border-radius: 5px;
-        font-size: 13px;
+      }
+      .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+      }
+      .detail-item {
+        margin-bottom: 5px;
+      }
+      .detail-label {
+        font-weight: bold;
+        color: #004E59;
+      }
+      .detail-value {
+        color: #333;
       }
       .back-in-stock {
         background-color: #4CAF50;
@@ -460,8 +573,10 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
           
           ${details ? `
           <div class="details-section">
-            <strong>Detalles del libro:</strong><br>
-            ${details}
+            <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
+            <div class="details-grid">
+              ${formatBookDetails(details)}
+            </div>
           </div>` : ''}
         </div>
         
