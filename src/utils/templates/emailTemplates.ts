@@ -342,11 +342,18 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       }
       .book-header {
         flex-direction: column;
+        align-items: center;
+      }
+      .book-header a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
       }
       .book-image {
         width: 100%;
         max-width: 200px;
-        margin: 0 auto 15px;
+        margin: 0 auto 5px;
       }
       .book-details {
         width: 100%;
@@ -354,6 +361,22 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       }
       .price-info {
         padding: 8px;
+      }
+      .details-grid {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+      .detail-item {
+        margin-bottom: 3px;
+        font-size: 13px;
+      }
+      .details-section {
+        padding: 10px;
+        margin-top: 10px;
+      }
+      .details-section h4 {
+        font-size: 0.9em;
+        margin-bottom: 8px;
       }
     }
   </style>
@@ -600,11 +623,18 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         }
         .book-header {
           flex-direction: column;
+          align-items: center;
+        }
+        .book-header a {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-decoration: none;
         }
         .book-image {
           width: 100%;
           max-width: 200px;
-          margin: 0 auto 15px;
+          margin: 0 auto 5px;
         }
         .book-details {
           width: 100%;
@@ -612,6 +642,22 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
         }
         .price-info {
           padding: 8px;
+        }
+        .details-grid {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+        .detail-item {
+          margin-bottom: 3px;
+          font-size: 13px;
+        }
+        .details-section {
+          padding: 10px;
+          margin-top: 10px;
+        }
+        .details-section h4 {
+          font-size: 0.9em;
+          margin-bottom: 8px;
         }
       }
     </style>
