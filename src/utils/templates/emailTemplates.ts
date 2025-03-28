@@ -27,7 +27,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Historial de Precios</h4>
       ${pricesToShow.map((priceItem, index) => `
         <div class="price-info" style="margin-bottom: ${index === pricesToShow.length - 1 ? '0' : '5px'};">
-          <span class="price-label">Precio anterior:</span>
+          <span class="price-label">${new Date(priceItem.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}:</span>
           <span class="price-value" style="text-decoration: line-through;">$${priceItem.price.toLocaleString()}</span>
         </div>
       `).join('')}
@@ -141,6 +141,8 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       font-size: 0.85em;
       margin-top: 3px;
       display: block;
+      padding: 5px 0;
+      margin-top: 3px;
     }
     .footer {
       margin-top: 20px;
@@ -221,10 +223,12 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
           <span class="price-label">Precio anterior:</span>
           <span class="price-value">${formattedLastPrice}</span>
         </div>
-        <div class="price-info">
-          <span class="price-label">Precio actual:</span> 
-          <span class="price-value">${formattedCurrentPrice}</span>
-          <span class="discount">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span>
+        <div class="price-info" style="flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; width: 100%;">
+            <span class="price-label">Precio actual:</span> 
+            <span class="price-value">${formattedCurrentPrice}</span>
+          </div>
+          <p class="discount" style="margin: 5px 0 0 0; text-align: right;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
         </div>
         ${lowestPriceHTML}
         ${previousPricesHTML}
