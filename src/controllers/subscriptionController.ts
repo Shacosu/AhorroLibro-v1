@@ -22,17 +22,21 @@ export const createSubscription = async (req: Request, res: Response): Promise<v
     return;
   }
   try {
-    const { userId } = req.body;
+    const { userId, countryCode = 'CL', currency = 'CLP' } = req.body;
 
     if (!userId) {
       res.status(400).json({ error: 'Se requiere el ID del usuario' });
       return;
     }
 
+    console.log(`Iniciando creación de suscripción para usuario ${userId} con país ${countryCode} y moneda ${currency}`);
+
     // Usar el limitador para la llamada a Mercado Pago
     const subscription = await limiter.schedule(() => 
-      mercadoPagoService.createUserSubscription(Number(userId))
+      mercadoPagoService.createUserSubscription(Number(userId), countryCode, currency)
     );
+
+    console.log(`Suscripción creada exitosamente: ${subscription.subscriptionId}`);
 
     res.status(201).json({
       message: 'Suscripción creada exitosamente',
@@ -43,8 +47,23 @@ export const createSubscription = async (req: Request, res: Response): Promise<v
       }
     });
   } catch (error: any) {
-    console.error('Error al crear suscripción:', error);
-    res.status(500).json({ error: error.message || 'Error al crear suscripción' });
+    console.error('Error al crear suscripción para usuario:', error);
+    
+    // Determinar el código de estado y mensaje apropiados
+    let statusCode = 400;
+    let errorMessage = error.message || 'Error al crear suscripción';
+    
+    if (error.message.includes('Cannot operate between different countries')) {
+      errorMessage = 'No se puede operar entre diferentes países. Por favor, contacta al soporte.';
+    } else if (error.message.includes('ya tiene una suscripción activa')) {
+      statusCode = 409; // Conflict
+    } else if (error.message.includes('no encontrado')) {
+      statusCode = 404; // Not Found
+    } else if (error.status === 500 || !error.status) {
+      statusCode = 500; // Internal Server Error para errores del servidor
+    }
+    
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 

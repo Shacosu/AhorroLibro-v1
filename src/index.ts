@@ -20,7 +20,10 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    'http://localhost:3001', 
+    'https://ahorrolibro.cl',
+  ],
   credentials: true
 }));
 
@@ -36,7 +39,7 @@ app.use('*', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
   
-  // Initialize cron jobs after server starts
-  const baseUrl = `http://localhost:${port}`;
-  initCronJobs(baseUrl);
+  // // Initialize cron jobs after server starts
+  // const baseUrl = `http://localhost:${port}`;
+  // initCronJobs(baseUrl);
 });

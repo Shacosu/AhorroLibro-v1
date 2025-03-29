@@ -7,13 +7,16 @@ const prisma = new PrismaClient();
 // Configurar Mercado Pago con el token de acceso
 const client = new MercadoPagoConfig({ 
   accessToken: credentials.mercadoPagoAccessToken,
-  options: { timeout: 5000 }
+  options: { 
+    timeout: 5000,
+    integratorId: "dev_ahorro_libro",
+    corporationId: "CL" // Especificar Chile como país de operación
+  }
 });
 
 // Inicializar el objeto de pago y preapproval
 const preapproval = new PreApproval(client);
-const AMOUNT_SUBSCRIPTION = 950;
-
+const AMOUNT_SUBSCRIPTION = 7990; // Ajustar al precio real en CLP
 
 /**
  * Interfaz para los datos de la suscripción
@@ -65,9 +68,11 @@ export const createPendingSubscription = async (data: SubscriptionData) => {
 /**
  * Crea una suscripción para un usuario
  * @param userId ID del usuario
+ * @param countryCode Código ISO del país (default: CL)
+ * @param currency Moneda (default: CLP)
  * @returns Datos de la suscripción creada
  */
-export const createUserSubscription = async (userId: number) => {
+export const createUserSubscription = async (userId: number, countryCode: string = 'CL', currency: string = 'CLP') => {
   try {
     // Obtener datos del usuario
     const user = await prisma.user.findUnique({
@@ -79,23 +84,48 @@ export const createUserSubscription = async (userId: number) => {
       throw new Error(`Usuario con ID ${userId} no encontrado`);
     }
 
+    // Verificar si el usuario ya tiene una suscripción activa
+    if (user.subscription && user.subscription.status === 'ACTIVE') {
+      throw new Error('El usuario ya tiene una suscripción activa');
+    }
+
     // Generar referencia externa única
     const externalReference = `subscription-${userId}-${Date.now()}`;
 
     // Preparar datos para la suscripción
     const subscriptionData: SubscriptionData = {
-      reason: `Suscripción Premium - Usuario ${user.name} ${user.lastname}`,
+      reason: `Suscripción Premium - Ahorro Libro`,
       externalReference,
       payerEmail: user.email,
       frequency: 1,
       frequencyType: 'months',
       transactionAmount: AMOUNT_SUBSCRIPTION,
-      currencyId: 'CLP', // Moneda chilena
+      currencyId: currency,
       backUrl: 'https://ahorrolibro.cl/subscription/callback'
     };
 
+    console.log('Creando suscripción con datos:', {
+      ...subscriptionData,
+      payerEmail: user.email.substring(0, 3) + '***' // Ocultar parte del email por privacidad
+    });
+
     // Crear suscripción en Mercado Pago
-    const mpSubscription = await createPendingSubscription(subscriptionData);
+    const mpSubscription = await preapproval.create({
+      body: {
+        reason: subscriptionData.reason,
+        external_reference: subscriptionData.externalReference,
+        payer_email: subscriptionData.payerEmail,
+        auto_recurring: {
+          frequency: subscriptionData.frequency,
+          frequency_type: subscriptionData.frequencyType,
+          transaction_amount: subscriptionData.transactionAmount,
+          currency_id: subscriptionData.currencyId,
+          end_date: subscriptionData.endDate ? subscriptionData.endDate.toISOString() : undefined
+        },
+        back_url: subscriptionData.backUrl,
+        status: 'pending'
+      }
+    });
 
     // Obtener la URL de pago desde la respuesta
     const paymentUrl = mpSubscription.init_point || '';

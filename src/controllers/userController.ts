@@ -136,12 +136,8 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
     
     const user = await prisma.user.findUnique({ 
       where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        // No incluimos updatedAt porque no existe en el modelo
+      omit: {
+        password: true
       }
     });
     
@@ -176,12 +172,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       // Buscar el usuario para asegurarnos de que existe
       const user = await prisma.user.findUnique({ 
         where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          lastname: true,
-          email: true,
-          createdAt: true
+        omit: {
+          password: true
         }
       });
       

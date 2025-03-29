@@ -18,8 +18,7 @@ export const getAllBooks = async (req: Request, res: Response): Promise<void> =>
   try {
     // Obtener parámetros de paginación de la consulta
     const page = parseInt(req.query.page as string) || 1;
-    const pageSize = parseInt(req.query.pageSize as string) || 10;
-    console.log(req)
+    const pageSize = parseInt(req.query.pageSize as string) || 12;
     // Obtener el userId del token JWT (añadido por el middleware de autenticación)
     const userId = (req as any).user?.userId;
     

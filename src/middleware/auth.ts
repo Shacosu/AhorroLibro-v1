@@ -9,9 +9,6 @@ interface AuthRequest extends Request {
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
   // Log all possible token locations for debugging
-  console.log('Auth Debug:');
-  console.log('- Cookies:', req.cookies);
-  console.log('- Authorization Header:', req.headers.authorization);
   
   // Try to get token from multiple sources
   // 1. From cookie (primary method)
@@ -31,7 +28,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   if (!token) {
-    console.log('No authentication token found in request');
     res.status(401).json({ error: 'Acceso denegado. No has iniciado sesión.' });
     return;
   }
@@ -39,7 +35,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   try {
     const decoded = verifyToken(token) as { userId: number };
     req.user = decoded;
-    console.log('Token verified successfully for user ID:', decoded.userId);
     next();
   } catch (error) {
     console.error('Token verification failed:', error);
