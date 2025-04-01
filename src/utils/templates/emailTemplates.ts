@@ -453,13 +453,13 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
               
               <div class="price-info" style="flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; width: 100%;">
-                  <span class="price-label">Precio:</span>
+                  <span class="price-label" style="align-self: flex-start;">Precio:</span>
                   <div style="text-align: right;">
-                    <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 2px;">${formattedLastPrice}</div>
-                    <span class="price-value">${formattedCurrentPrice}</span>
+                    <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 5px;">${formattedLastPrice}</div>
+                    <span class="price-value" style="font-weight: bold; font-size: 1.1em;">${formattedCurrentPrice}</span>
                   </div>
                 </div>
-                <p class="discount" style="margin: 8px 0 0 0; text-align: center; width: 100%; display: block;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
+                <p class="discount" style="margin: 8px 0 0 0; text-align: start; width: 100%; display: block; font-weight: bold;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
               </div>
               ${lowestPriceHTML}
               ${previousPricesHTML}
