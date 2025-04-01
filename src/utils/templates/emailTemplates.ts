@@ -281,6 +281,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
       display: block !important;
       padding: 5px 0 !important;
       margin-top: 3px !important;
+      text-align: center !important;
     }
     .footer {
       margin-top: 20px !important;
@@ -458,7 +459,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
                     <span class="price-value">${formattedCurrentPrice}</span>
                   </div>
                 </div>
-                <p class="discount" style="margin: 5px 0 0 0; text-align: right;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
+                <p class="discount" style="margin: 8px 0 0 0; text-align: center; width: 100%; display: block;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
               </div>
               ${lowestPriceHTML}
               ${previousPricesHTML}
@@ -786,7 +787,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
                 
                 <div class="price-info">
                   <span class="price-label">Precio actual:</span>
-                  <span class="price-value">${formattedCurrentPrice}</span>
+                  <span class="price-value" style="text-align: right;">${formattedCurrentPrice}</span>
                 </div>
                 
                 ${lowestPriceHTML}
