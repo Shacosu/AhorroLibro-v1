@@ -16,7 +16,7 @@ const client = new MercadoPagoConfig({
 
 // Inicializar el objeto de pago y preapproval
 const preapproval = new PreApproval(client);
-const AMOUNT_SUBSCRIPTION = 7990; // Ajustar al precio real en CLP
+const AMOUNT_SUBSCRIPTION = 950; // Ajustar al precio real en CLP
 
 /**
  * Interfaz para los datos de la suscripción
@@ -167,15 +167,8 @@ export const createUserSubscription = async (userId: number, countryCode: string
         });
       }
       
-      // Actualizar el plan del usuario
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          plan: 'PREMIUM',
-          planStart: new Date(),
-          planEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días
-        }
-      });
+      // NO actualizamos el plan del usuario hasta que el pago sea confirmado
+      // El plan se actualizará en el webhook o en el callback de MercadoPago
     } catch (dbError) {
       console.error('Error al guardar suscripción en la base de datos:', dbError);
       // Continuamos aunque falle la inserción en la base de datos

@@ -75,13 +75,18 @@ export const getAllBooks = async (req: Request, res: Response): Promise<void> =>
           }
         },
         orderBy: {
-          price: 'asc'
-        },
-        take: 1
+          date: 'desc' // Ordenar por fecha descendente para obtener los más recientes primero
+        }
       });
       
       // Precio mínimo (si existe)
-      const minPrice = priceHistory.length > 0 ? priceHistory[0].price : null;
+      let minPrice = null;
+      if (priceHistory.length > 0) {
+        const pricesGreaterThanZero = priceHistory.filter(ph => ph.price > 0);
+        if (pricesGreaterThanZero.length > 0) {
+          minPrice = Math.min(...pricesGreaterThanZero.map(ph => ph.price));
+        }
+      }
       
       // Precio actual (del último registro en priceHistories)
       const bookWithPriceHistories = book as any;
@@ -90,6 +95,22 @@ export const getAllBooks = async (req: Request, res: Response): Promise<void> =>
                           bookWithPriceHistories.priceHistories[0].price : 
                           book.price;
       
+      // Calcular descuento real basado en los dos precios más recientes
+      let previousPrice = null;
+      let realDiscount = null;
+      let realDiscountPercentage = null;
+      
+      // Si hay al menos 2 registros de precio, podemos calcular el descuento real
+      if (priceHistory.length >= 2) {
+        previousPrice = priceHistory[1].price;
+        
+        // Solo calcular descuento si el precio anterior es mayor que el actual
+        if (previousPrice > currentPrice) {
+          realDiscount = previousPrice - currentPrice;
+          realDiscountPercentage = Math.round((realDiscount / previousPrice) * 100);
+        }
+      }
+      
       // Eliminar el array de priceHistories para no duplicar información
       const { priceHistories, ...bookData } = bookWithPriceHistories;
       
@@ -97,7 +118,10 @@ export const getAllBooks = async (req: Request, res: Response): Promise<void> =>
       return {
         ...bookData,
         minPrice,
-        currentPrice
+        currentPrice,
+        previousPrice,
+        realDiscount,
+        realDiscountPercentage
       };
     }));
     
@@ -434,5 +458,111 @@ export const addBookToUser = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'Book added to user successfully' });
   } catch (error) {
     res.status(500).json({ error: 'Error adding book to user' });
+  }
+};
+
+export const getBookById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(Number(id))) {
+      res.status(400).json({ error: 'ID de libro inválido' });
+      return;
+    }
+    
+    // Obtener el userId del token JWT (añadido por el middleware de autenticación)
+    const userId = (req as any).user?.userId;
+    
+    // Validar que se tenga un userId (debería estar presente si pasó por el middleware de autenticación)
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado. Se requiere autenticación.' });
+      return;
+    }
+    
+    // Buscar el libro por ID
+    const book = await prisma.book.findUnique({
+      where: { id: Number(id) }
+    });
+    
+    if (!book) {
+      res.status(404).json({ error: 'Libro no encontrado' });
+      return;
+    }
+    
+    // Verificar si el libro pertenece al usuario
+    const userBook = await prisma.userBook.findUnique({
+      where: {
+        userId_bookId: {
+          userId: userId,
+          bookId: Number(id)
+        }
+      }
+    });
+    
+    // Si el usuario tiene plan premium, puede ver cualquier libro
+    // Si no es premium, solo puede ver sus propios libros
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+    
+    if (!userBook && user?.plan !== 'PREMIUM') {
+      res.status(403).json({ error: 'No tienes acceso a este libro' });
+      return;
+    }
+    
+    // Obtener el historial de precios para el libro
+    const priceHistory = await prisma.priceHistory.findMany({
+      where: { bookId: Number(id) },
+      orderBy: { date: 'asc' }
+    });
+    
+    // Calcular el precio mínimo histórico
+    let minPrice = null;
+    if (priceHistory.length > 0) {
+      minPrice = Math.min(...priceHistory.map(ph => ph.price));
+    }
+    
+    // Obtener el precio actual (el más reciente del historial)
+    let currentPrice = book.price; // Usar el precio almacenado en el libro como valor predeterminado
+    let previousPrice = null;
+    let realDiscount = null;
+    let realDiscountPercentage = null;
+    
+    if (priceHistory.length > 0) {
+      // Ordenar por fecha descendente
+      const sortedHistory = [...priceHistory].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      
+      // El precio actual es el más reciente
+      if (sortedHistory[0]) {
+        currentPrice = sortedHistory[0].price;
+      }
+      
+      // El precio anterior es el segundo más reciente (si existe)
+      if (sortedHistory.length > 1) {
+        previousPrice = sortedHistory[1].price;
+        
+        // Calcular el descuento real y el porcentaje
+        if (previousPrice > currentPrice) {
+          realDiscount = previousPrice - currentPrice;
+          realDiscountPercentage = Math.round((realDiscount / previousPrice) * 100);
+        }
+      }
+    }
+    
+    // Devolver el libro con su historial de precios y precio mínimo
+    res.json({
+      ...book,
+      minPrice,
+      currentPrice,
+      previousPrice,
+      realDiscount,
+      realDiscountPercentage,
+      priceHistory
+    });
+  } catch (error) {
+    console.error('Error al obtener libro por ID:', error);
+    res.status(500).json({ error: 'Error al obtener el libro' });
   }
 };

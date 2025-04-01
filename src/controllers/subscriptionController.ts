@@ -2,8 +2,12 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import * as mercadoPagoService from '../services/mercadoPagoService';
 import Bottleneck from 'bottleneck';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
+const MERCADOPAGO_ACCESS_TOKEN = process.env.MERCADOPAGO_ACCESS_TOKEN;
 
 // Configurar limitador para las solicitudes a Mercado Pago
 const limiter = new Bottleneck({

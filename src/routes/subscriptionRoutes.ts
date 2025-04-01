@@ -3,7 +3,7 @@ import {
   createSubscription, 
   getSubscriptionStatus, 
   cancelSubscription, 
-  webhookHandler 
+  webhookHandler
 } from '../controllers/subscriptionController';
 
 const router = express.Router();
@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/', createSubscription);
 
 // Ruta para obtener el estado de una suscripción
-router.get('/:subscriptionId', getSubscriptionStatus);
+router.get('/:subscriptionId/status', getSubscriptionStatus);
 
 // Ruta para cancelar una suscripción
 router.delete('/:subscriptionId', cancelSubscription);
