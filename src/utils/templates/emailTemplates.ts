@@ -21,6 +21,10 @@ const formatBookDetails = (details: string): string => {
     formattedDetails = formattedDetails.replace(isbnMatch[0], '');
   }
   
+  // Eliminar cualquier otra mención de ISBN o ISBN13 del texto
+  formattedDetails = formattedDetails.replace(/ISBN13?:\s*[^,\s]+\s*,?/g, '');
+  formattedDetails = formattedDetails.replace(/ISBN13?\s+[^,\s]+\s*,?/g, '');
+  
   // Extraer "Detalles adicionales:" si está presente
   const detailsPrefix = 'Detalles adicionales:';
   if (formattedDetails.includes(detailsPrefix)) {
@@ -38,7 +42,6 @@ const formatBookDetails = (details: string): string => {
     { key: 'Encuadernación', value: '' },
     { key: 'Dimensiones', value: '' },
     { key: 'Peso', value: '' },
-    { key: 'ISBN13', value: '' },
     { key: 'Categorías', value: '' }
   ];
   
@@ -117,14 +120,6 @@ const formatBookDetails = (details: string): string => {
       if (value) {
         htmlDetails += `<div class="detail-item"><span class="detail-label">${currentKeyword}:</span> <span class="detail-value">${value}</span></div>`;
       }
-    }
-  }
-  
-  // Buscar ISBN13 específicamente si no se encontró antes
-  if (!formattedDetails.includes('ISBN13:') && formattedDetails.includes('ISBN13')) {
-    const isbn13Match = formattedDetails.match(/ISBN13\s+(\d+)/);
-    if (isbn13Match && isbn13Match[1]) {
-      htmlDetails += `<div class="detail-item"><span class="detail-label">ISBN13:</span> <span class="detail-value">${isbn13Match[1]}</span></div>`;
     }
   }
   
@@ -430,8 +425,18 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
                 <tr>
                   <td style="vertical-align: top; width: 120px;">
                     <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank" style="text-decoration: none; color: inherit;">
-                      <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto;">
-                      <span class="image-click-hint">Click en la imagen para ver el libro</span>
+                      <table border="0" cellspacing="0" cellpadding="0" style="width: 100%;">
+                        <tr>
+                          <td style="text-align: center;">
+                            <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto; margin-bottom: 5px;">
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="text-align: center;">
+                            <span class="image-click-hint" style="display: block; text-align: center; font-size: 11px; color: #666; font-style: italic;">Click en la imagen para ver el libro</span>
+                          </td>
+                        </tr>
+                      </table>
                     </a>
                   </td>
                   <td style="vertical-align: top; padding-left: 15px;">
@@ -469,7 +474,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
             
             <p>Este descuento supera tu configuración de notificación de ${user.discountPercentage}%.</p>
             
-            <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
+            <p>No pierdas esta oportunidad de adquirir este libro.</p>
             
             <div style="text-align: center;">
               <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
@@ -477,7 +482,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
           </div>
           <div class="footer">
             <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
-            <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
+            <p>Si no deseas recibir más notificaciones, puedes actualizar <a href="https://ahorrolibro.cl/profile" style="color: #004E59; text-decoration: underline;">tus preferencias</a> en tu perfil.</p>
           </div>
         </div>
       </td>
@@ -753,8 +758,18 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
                   <tr>
                     <td style="vertical-align: top; width: 120px;">
                       <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank" style="text-decoration: none; color: inherit;">
-                        <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto;">
-                        <span class="image-click-hint">Click en la imagen para ver el libro</span>
+                        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%;">
+                          <tr>
+                            <td style="text-align: center;">
+                              <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto; margin-bottom: 5px;">
+                            </td>
+                          </tr>
+                          <tr>
+                            <td style="text-align: center;">
+                              <span class="image-click-hint" style="display: block; text-align: center; font-size: 11px; color: #666; font-style: italic;">Click en la imagen para ver el libro</span>
+                            </td>
+                          </tr>
+                        </table>
                       </a>
                     </td>
                     <td style="vertical-align: top; padding-left: 15px;">
@@ -793,7 +808,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
             </div>
             <div class="footer">
               <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
-              <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
+              <p>Si no deseas recibir más notificaciones, puedes actualizar <a href="https://ahorrolibro.cl/profile" style="color: #004E59; text-decoration: underline;">tus preferencias</a> en tu perfil.</p>
             </div>
           </div>
         </td>
