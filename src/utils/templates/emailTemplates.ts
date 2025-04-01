@@ -185,6 +185,9 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
     </div>`;
   }
 
+  // Format book details using the helper function
+  const formattedBookDetails = details ? formatBookDetails(details) : '';
+
   return `
   <!DOCTYPE html>
 <html lang="es">
@@ -194,252 +197,292 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   <title>Descuento en Libro</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif !important;
+      line-height: 1.6 !important;
+      color: #333 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
     }
     .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+      max-width: 600px !important;
+      margin: 0 auto !important;
+      padding: 20px !important;
+      width: 100% !important;
     }
     .header {
-      background-color: #004E59;
-      color: white;
-      padding: 20px;
-      text-align: center;
-      border-radius: 5px 5px 0 0;
+      background-color: #004E59 !important;
+      color: white !important;
+      padding: 20px !important;
+      text-align: center !important;
+      border-radius: 5px 5px 0 0 !important;
     }
     .content {
-      padding: 20px;
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-top: none;
-      border-radius: 0 0 5px 5px;
+      padding: 20px !important;
+      background-color: #f9f9f9 !important;
+      border: 1px solid #ddd !important;
+      border-top: none !important;
+      border-radius: 0 0 5px 5px !important;
     }
     .book-info {
-      margin: 20px 0;
-      padding: 15px;
-      background-color: white;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin: 20px 0 !important;
+      padding: 15px !important;
+      background-color: white !important;
+      border-radius: 5px !important;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
     }
     .book-header {
-      display: flex;
-      margin-bottom: 15px;
+      display: flex !important;
+      margin-bottom: 15px !important;
     }
     .book-image {
-      width: 120px;
-      height: auto;
-      margin-right: 15px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      object-fit: cover;
+      width: 120px !important;
+      height: auto !important;
+      margin-right: 15px !important;
+      border-radius: 5px !important;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+      object-fit: cover !important;
     }
     .book-details {
-      flex: 1;
+      flex: 1 !important;
     }
     .book-title {
-      margin: 0 0 5px 0;
-      color: #004E59;
+      margin: 0 0 5px 0 !important;
+      color: #004E59 !important;
     }
     .book-author {
-      margin: 0 0 10px 0;
-      color: #666;
-      font-style: italic;
+      margin: 0 0 10px 0 !important;
+      color: #666 !important;
+      font-style: italic !important;
     }
     .book-description {
-      margin: 15px 0;
-      font-size: 14px;
-      line-height: 1.5;
+      margin: 15px 0 !important;
+      font-size: 14px !important;
+      line-height: 1.5 !important;
     }
     .price-info {
-      display: flex;
-      justify-content: space-between;
-      margin: 10px 0;
-      padding: 10px;
-      background-color: rgba(0, 78, 89, 0.05);
-      border-radius: 5px;
+      display: flex !important;
+      justify-content: space-between !important;
+      margin: 10px 0 !important;
+      padding: 10px !important;
+      background-color: rgba(0, 78, 89, 0.05) !important;
+      border-radius: 5px !important;
     }
     .price-label {
-      font-weight: bold;
-      color: #004E59;
-      font-size: 0.95em;
+      font-weight: bold !important;
+      color: #004E59 !important;
+      font-size: 0.95em !important;
     }
     .price-value {
-      font-weight: bold;
-      color: #004E59;
-      font-size: 0.95em;
+      font-weight: bold !important;
+      color: #004E59 !important;
+      font-size: 0.95em !important;
     }
     .discount {
-      color: #E53935;
-      font-weight: bold;
-      font-size: 0.85em;
-      margin-top: 3px;
-      display: block;
-      padding: 5px 0;
-      margin-top: 3px;
+      color: #E53935 !important;
+      font-weight: bold !important;
+      font-size: 0.85em !important;
+      margin-top: 3px !important;
+      display: block !important;
+      padding: 5px 0 !important;
+      margin-top: 3px !important;
     }
     .footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 12px;
-      color: #777;
+      margin-top: 20px !important;
+      text-align: center !important;
+      font-size: 12px !important;
+      color: #777 !important;
     }
     .button {
-      display: inline-block;
-      padding: 10px 20px;
-      background-color: #004E59;
+      display: inline-block !important;
+      padding: 10px 20px !important;
+      background-color: #004E59 !important;
       color: white !important;
       text-decoration: none !important;
-      border-radius: 5px;
-      font-weight: bold;
-      margin-top: 15px;
+      border-radius: 5px !important;
+      font-weight: bold !important;
+      margin-top: 15px !important;
     }
     .details-section {
-      margin-top: 15px;
-      padding: 15px;
-      background-color: rgba(0, 78, 89, 0.03);
-      border-radius: 5px;
+      margin-top: 15px !important;
+      padding: 15px !important;
+      background-color: rgba(0, 78, 89, 0.03) !important;
+      border-radius: 5px !important;
     }
     .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 8px;
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+      gap: 8px !important;
     }
     .detail-item {
-      margin-bottom: 5px;
+      margin-bottom: 5px !important;
     }
     .detail-label {
-      font-weight: bold;
-      color: #004E59;
+      font-weight: bold !important;
+      color: #004E59 !important;
     }
     .detail-value {
-      color: #333;
+      color: #333 !important;
     }
     .previous-prices {
-      margin-top: 15px;
-      padding: 10px;
-      background-color: #f5f5f5;
-      border-radius: 5px;
+      margin-top: 15px !important;
+      padding: 10px !important;
+      background-color: #f5f5f5 !important;
+      border-radius: 5px !important;
     }
     .image-click-hint {
-      display: block;
-      font-size: 11px;
-      color: #666;
-      text-align: center;
-      margin-top: 5px;
-      font-style: italic;
+      display: block !important;
+      font-size: 11px !important;
+      color: #666 !important;
+      text-align: center !important;
+      margin-top: 5px !important;
+      font-style: italic !important;
     }
-    @media only screen and (max-width: 480px) {
+    /* Gmail-specific table styling */
+    table {
+      border-collapse: collapse !important;
+      mso-table-lspace: 0pt !important;
+      mso-table-rspace: 0pt !important;
+    }
+    table td {
+      border-collapse: collapse !important;
+    }
+    /* Mobile styles */
+    @media screen and (max-width: 480px) {
       .container {
-        padding: 10px;
+        width: 100% !important;
+        padding: 10px !important;
       }
       .header {
-        padding: 15px 10px;
+        padding: 15px 10px !important;
       }
       .book-header {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: column !important;
+        align-items: center !important;
       }
       .book-header a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-decoration: none;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-decoration: none !important;
       }
       .book-image {
-        width: 100%;
-        max-width: 200px;
-        margin: 0 auto 5px;
+        width: 100% !important;
+        max-width: 200px !important;
+        margin: 0 auto 5px !important;
       }
       .book-details {
-        width: 100%;
-        text-align: center;
+        width: 100% !important;
+        text-align: center !important;
       }
       .price-info {
-        padding: 8px;
+        padding: 8px !important;
       }
       .details-grid {
-        grid-template-columns: 1fr;
-        gap: 4px;
+        grid-template-columns: 1fr !important;
+        gap: 4px !important;
       }
       .detail-item {
-        margin-bottom: 3px;
-        font-size: 13px;
+        margin-bottom: 3px !important;
+        font-size: 13px !important;
       }
       .details-section {
-        padding: 10px;
-        margin-top: 10px;
+        padding: 10px !important;
+        margin-top: 10px !important;
       }
       .details-section h4 {
-        font-size: 0.9em;
-        margin-bottom: 8px;
+        font-size: 0.9em !important;
+        margin-bottom: 8px !important;
+      }
+      /* Force table to not be like tables anymore */
+      table, tbody, tr, td {
+        display: block !important;
+        width: 100% !important;
+      }
+      /* Hide table headers */
+      thead tr {
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+      }
+      td {
+        position: relative !important;
+        padding-left: 0 !important;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>¡Descuento Detectado!</h1>
-      <p>Hemos encontrado un descuento en un libro de tu lista de seguimiento</p>
-    </div>
-    <div class="content">
-      <h2>Hola ${user.name},</h2>
-      <p>¡Buenas noticias! El libro que estás siguiendo tiene un descuento:</p>
-      
-      <div class="book-info">
-        <div class="book-header">
-          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank">
-            <img src="${imageUrl}" alt="${title}" class="book-image">
-            <span class="image-click-hint">Click en la imagen para ver el libro</span>
-          </a>
-          <div class="book-details">
-            <h3 class="book-title">${title}</h3>
-            <p class="book-author">Autor: ${author}</p>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center">
+        <div class="container">
+          <div class="header">
+            <h1>¡Descuento Detectado!</h1>
+            <p>Hemos encontrado un descuento en un libro de tu lista de seguimiento</p>
           </div>
-        </div>
-        
-        ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
-        
-        <div class="price-info" style="flex-direction: column;">
-          <div style="display: flex; justify-content: space-between; width: 100%;">
-            <span class="price-label">Precio:</span>
-            <div style="text-align: right;">
-              <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 2px;">${formattedLastPrice}</div>
-              <span class="price-value">${formattedCurrentPrice}</span>
+          <div class="content">
+            <h2>Hola ${user.name},</h2>
+            <p>¡Buenas noticias! El libro que estás siguiendo tiene un descuento:</p>
+            
+            <div class="book-info">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0" class="book-header">
+                <tr>
+                  <td style="vertical-align: top; width: 120px;">
+                    <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank" style="text-decoration: none; color: inherit;">
+                      <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto;">
+                      <span class="image-click-hint">Click en la imagen para ver el libro</span>
+                    </a>
+                  </td>
+                  <td style="vertical-align: top; padding-left: 15px;">
+                    <div class="book-details">
+                      <h3 class="book-title">${title}</h3>
+                      <p class="book-author">Autor: ${author}</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              
+              ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
+              
+              <div class="price-info" style="flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                  <span class="price-label">Precio:</span>
+                  <div style="text-align: right;">
+                    <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 2px;">${formattedLastPrice}</div>
+                    <span class="price-value">${formattedCurrentPrice}</span>
+                  </div>
+                </div>
+                <p class="discount" style="margin: 5px 0 0 0; text-align: right;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
+              </div>
+              ${lowestPriceHTML}
+              ${previousPricesHTML}
+              
+              ${details ? `
+              <div class="details-section">
+                <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
+                <div class="details-grid">
+                  ${formattedBookDetails}
+                </div>
+              </div>` : ''}
+            </div>
+            
+            <p>Este descuento supera tu configuración de notificación de ${user.discountPercentage}%.</p>
+            
+            <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
+            
+            <div style="text-align: center;">
+              <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
             </div>
           </div>
-          <p class="discount" style="margin: 5px 0 0 0; text-align: right;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
-        </div>
-        ${lowestPriceHTML}
-        ${previousPricesHTML}
-        
-        ${details ? `
-        <div class="details-section">
-          <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
-          <div class="details-grid">
-            ${formatBookDetails(details)}
+          <div class="footer">
+            <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
+            <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
           </div>
-        </div>` : ''}
-      </div>
-      
-      <p>Este descuento supera tu configuración de notificación de ${user.discountPercentage}%.</p>
-      
-      <p>No pierdas esta oportunidad de adquirir este libro a un precio especial.</p>
-      
-      <div style="text-align: center;">
-        <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
-      </div>
-    </div>
-    <div class="footer">
-      <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
-      <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
-    </div>
-  </div>
+        </div>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
@@ -470,6 +513,9 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
     </div>`;
   }
 
+  // Format book details using the helper function
+  const formattedBookDetails = details ? formatBookDetails(details) : '';
+
   return `
   <!DOCTYPE html>
   <html lang="es">
@@ -479,240 +525,280 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
     <title>Libro de vuelta en stock</title>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        color: #333;
-        margin: 0;
-        padding: 0;
+        font-family: Arial, sans-serif !important;
+        line-height: 1.6 !important;
+        color: #333 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
       }
       .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
+        max-width: 600px !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        width: 100% !important;
       }
       .header {
-        background-color: #004E59;
-        color: white;
-        padding: 20px;
-        text-align: center;
-        border-radius: 5px 5px 0 0;
+        background-color: #004E59 !important;
+        color: white !important;
+        padding: 20px !important;
+        text-align: center !important;
+        border-radius: 5px 5px 0 0 !important;
       }
       .content {
-        padding: 20px;
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-top: none;
-        border-radius: 0 0 5px 5px;
+        padding: 20px !important;
+        background-color: #f9f9f9 !important;
+        border: 1px solid #ddd !important;
+        border-top: none !important;
+        border-radius: 0 0 5px 5px !important;
       }
       .book-info {
-        margin: 20px 0;
-        padding: 15px;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin: 20px 0 !important;
+        padding: 15px !important;
+        background-color: white !important;
+        border-radius: 5px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
       }
       .book-header {
-        display: flex;
-        margin-bottom: 15px;
+        display: flex !important;
+        margin-bottom: 15px !important;
       }
       .book-image {
-        width: 120px;
-        height: auto;
-        margin-right: 15px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        object-fit: cover;
+        width: 120px !important;
+        height: auto !important;
+        margin-right: 15px !important;
+        border-radius: 5px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        object-fit: cover !important;
       }
       .book-details {
-        flex: 1;
+        flex: 1 !important;
       }
       .book-title {
-        margin: 0 0 5px 0;
-        color: #004E59;
+        margin: 0 0 5px 0 !important;
+        color: #004E59 !important;
       }
       .book-author {
-        margin: 0 0 10px 0;
-        color: #666;
-        font-style: italic;
+        margin: 0 0 10px 0 !important;
+        color: #666 !important;
+        font-style: italic !important;
       }
       .book-description {
-        margin: 15px 0;
-        font-size: 14px;
-        line-height: 1.5;
+        margin: 15px 0 !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
       }
       .price-info {
-        display: flex;
-        justify-content: space-between;
-        margin: 10px 0;
-        padding: 10px;
-        background-color: rgba(0, 78, 89, 0.05);
-        border-radius: 5px;
+        display: flex !important;
+        justify-content: space-between !important;
+        margin: 10px 0 !important;
+        padding: 10px !important;
+        background-color: rgba(0, 78, 89, 0.05) !important;
+        border-radius: 5px !important;
       }
       .price-label {
-        font-weight: bold;
-        color: #004E59;
-        font-size: 0.95em;
+        font-weight: bold !important;
+        color: #004E59 !important;
+        font-size: 0.95em !important;
       }
       .price-value {
-        font-weight: bold;
-        color: #004E59;
-        font-size: 0.95em;
+        font-weight: bold !important;
+        color: #004E59 !important;
+        font-size: 0.95em !important;
       }
       .footer {
-        margin-top: 20px;
-        text-align: center;
-        font-size: 12px;
-        color: #777;
+        margin-top: 20px !important;
+        text-align: center !important;
+        font-size: 12px !important;
+        color: #777 !important;
       }
       .button {
-        display: inline-block;
-        padding: 10px 20px;
-        background-color: #004E59;
+        display: inline-block !important;
+        padding: 10px 20px !important;
+        background-color: #004E59 !important;
         color: white !important;
         text-decoration: none !important;
-        border-radius: 5px;
-        font-weight: bold;
-        margin-top: 15px;
+        border-radius: 5px !important;
+        font-weight: bold !important;
+        margin-top: 15px !important;
       }
       .details-section {
-        margin-top: 15px;
-        padding: 15px;
-        background-color: rgba(0, 78, 89, 0.03);
-        border-radius: 5px;
+        margin-top: 15px !important;
+        padding: 15px !important;
+        background-color: rgba(0, 78, 89, 0.03) !important;
+        border-radius: 5px !important;
       }
       .details-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 8px;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+        gap: 8px !important;
       }
       .detail-item {
-        margin-bottom: 5px;
+        margin-bottom: 5px !important;
       }
       .detail-label {
-        font-weight: bold;
-        color: #004E59;
+        font-weight: bold !important;
+        color: #004E59 !important;
       }
       .detail-value {
-        color: #333;
+        color: #333 !important;
       }
       .back-in-stock {
-        background-color: #4CAF50;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 3px;
-        font-weight: bold;
-        display: inline-block;
-        margin-bottom: 10px;
-        font-size: 15px;
+        background-color: #4CAF50 !important;
+        color: white !important;
+        padding: 5px 10px !important;
+        border-radius: 3px !important;
+        font-weight: bold !important;
+        display: inline-block !important;
+        margin-bottom: 10px !important;
+        font-size: 15px !important;
       }
       .image-click-hint {
-        display: block;
-        font-size: 11px;
-        color: #666;
-        text-align: center;
-        margin-top: 5px;
-        font-style: italic;
+        display: block !important;
+        font-size: 11px !important;
+        color: #666 !important;
+        text-align: center !important;
+        margin-top: 5px !important;
+        font-style: italic !important;
       }
-      @media only screen and (max-width: 480px) {
+      /* Gmail-specific table styling */
+      table {
+        border-collapse: collapse !important;
+        mso-table-lspace: 0pt !important;
+        mso-table-rspace: 0pt !important;
+      }
+      table td {
+        border-collapse: collapse !important;
+      }
+      /* Mobile styles */
+      @media screen and (max-width: 480px) {
         .container {
-          padding: 10px;
+          width: 100% !important;
+          padding: 10px !important;
         }
         .header {
-          padding: 15px 10px;
+          padding: 15px 10px !important;
         }
         .book-header {
-          flex-direction: column;
-          align-items: center;
+          flex-direction: column !important;
+          align-items: center !important;
         }
         .book-header a {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-decoration: none;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          text-decoration: none !important;
         }
         .book-image {
-          width: 100%;
-          max-width: 200px;
-          margin: 0 auto 5px;
+          width: 100% !important;
+          max-width: 200px !important;
+          margin: 0 auto 5px !important;
         }
         .book-details {
-          width: 100%;
-          text-align: center;
+          width: 100% !important;
+          text-align: center !important;
         }
         .price-info {
-          padding: 8px;
+          padding: 8px !important;
         }
         .details-grid {
-          grid-template-columns: 1fr;
-          gap: 4px;
+          grid-template-columns: 1fr !important;
+          gap: 4px !important;
         }
         .detail-item {
-          margin-bottom: 3px;
-          font-size: 13px;
+          margin-bottom: 3px !important;
+          font-size: 13px !important;
         }
         .details-section {
-          padding: 10px;
-          margin-top: 10px;
+          padding: 10px !important;
+          margin-top: 10px !important;
         }
         .details-section h4 {
-          font-size: 0.9em;
-          margin-bottom: 8px;
+          font-size: 0.9em !important;
+          margin-bottom: 8px !important;
+        }
+        /* Force table to not be like tables anymore */
+        table, tbody, tr, td {
+          display: block !important;
+          width: 100% !important;
+        }
+        /* Hide table headers */
+        thead tr {
+          position: absolute !important;
+          top: -9999px !important;
+          left: -9999px !important;
+        }
+        td {
+          position: relative !important;
+          padding-left: 0 !important;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1>¡Libro de vuelta en stock!</h1>
-        <p>Un libro que estabas siguiendo está disponible nuevamente</p>
-      </div>
-      <div class="content">
-        <h2>Hola ${user.name},</h2>
-        <p>¡Buenas noticias! El libro que estabas siguiendo está disponible nuevamente:</p>
-        
-        <div class="book-info">
-          <div class="book-header">
-            <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank">
-              <img src="${imageUrl}" alt="${title}" class="book-image">
-              <span class="image-click-hint">Click en la imagen para ver el libro</span>
-            </a>
-            <div class="book-details">
-              <h3 class="book-title">${title}</h3>
-              <p class="book-author">Autor: ${author}</p>
-              <span class="back-in-stock">¡DE VUELTA EN STOCK!</span>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="center">
+          <div class="container">
+            <div class="header">
+              <h1>¡Libro de vuelta en stock!</h1>
+              <p>Un libro que estabas siguiendo está disponible nuevamente</p>
+            </div>
+            <div class="content">
+              <h2>Hola ${user.name},</h2>
+              <p>¡Buenas noticias! El libro que estabas siguiendo está disponible nuevamente:</p>
+              
+              <div class="book-info">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="book-header">
+                  <tr>
+                    <td style="vertical-align: top; width: 120px;">
+                      <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" target="_blank" style="text-decoration: none; color: inherit;">
+                        <img src="${imageUrl}" alt="${title}" class="book-image" style="width: 120px; height: auto;">
+                        <span class="image-click-hint">Click en la imagen para ver el libro</span>
+                      </a>
+                    </td>
+                    <td style="vertical-align: top; padding-left: 15px;">
+                      <div class="book-details">
+                        <h3 class="book-title">${title}</h3>
+                        <p class="book-author">Autor: ${author}</p>
+                        <span class="back-in-stock">¡DE VUELTA EN STOCK!</span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+                
+                ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
+                
+                <div class="price-info">
+                  <span class="price-label">Precio actual:</span>
+                  <span class="price-value">${formattedCurrentPrice}</span>
+                </div>
+                
+                ${lowestPriceHTML}
+                
+                ${details ? `
+                <div class="details-section">
+                  <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
+                  <div class="details-grid">
+                    ${formattedBookDetails}
+                  </div>
+                </div>` : ''}
+              </div>
+              
+              <p>No pierdas esta oportunidad de adquirir este libro antes de que se agote nuevamente.</p>
+              
+              <div style="text-align: center;">
+                <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
+              </div>
+            </div>
+            <div class="footer">
+              <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
+              <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
             </div>
           </div>
-          
-          ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
-          
-          <div class="price-info">
-            <span class="price-label">Precio actual:</span>
-            <span class="price-value">${formattedCurrentPrice}</span>
-          </div>
-          
-          ${lowestPriceHTML}
-          
-          ${details ? `
-          <div class="details-section">
-            <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>
-            <div class="details-grid">
-              ${formatBookDetails(details)}
-            </div>
-          </div>` : ''}
-        </div>
-        
-        <p>No pierdas esta oportunidad de adquirir este libro que estaba agotado.</p>
-        
-        <div style="text-align: center;">
-          <a href="${link}?afiliado=2b8de09ad3e4e4a8bdd4" class="button">Ver Libro</a>
-        </div>
-      </div>
-      <div class="footer">
-        <p>Este correo fue enviado el ${today} por Ahorro Libro.</p>
-        <p>Si no deseas recibir más notificaciones, puedes actualizar tus preferencias en tu perfil.</p>
-      </div>
-    </div>
+        </td>
+      </tr>
+    </table>
   </body>
   </html>
   `;
