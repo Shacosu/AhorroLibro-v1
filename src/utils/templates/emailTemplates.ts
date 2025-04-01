@@ -450,14 +450,18 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
               </table>
               
               ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
-
-              <div style="display: flex; justify-content: space-between; width: 100%; margin: 10px 0 !important; padding: 10px !important; background-color: rgba(0, 78, 89, 0.05) !important; border-radius: 5px !important;">
-                <span class="price-label" style="align-self: flex-start;">Precio:</span>
-                <div style="text-align: right;">
-                  <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 5px;">${formattedLastPrice}</div>
-                  <span class="price-value" style="font-weight: bold; font-size: 1.1em;">${formattedCurrentPrice}</span>
+              
+              <div class="price-info" style="flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                  <span class="price-label" style="align-self: flex-start;">Precio:</span>
+                  <div style="text-align: right;">
+                    <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 5px;">${formattedLastPrice}</div>
+                    <span class="price-value" style="font-weight: bold; font-size: 1.1em;">${formattedCurrentPrice}</span>
+                  </div>
                 </div>
-                <p class="discount" style="margin: 8px 0 0 0; text-align: start; width: 100%; display: block; font-weight: bold;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
+                <div style="width: 100%; display: flex; margin-top: 8px;">
+                  <span style="color: #E53935; font-weight: bold; font-size: 0.9em; display: inline-block; padding-left: 0;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</span>
+                </div>
               </div>
               
               ${lowestPriceHTML}
