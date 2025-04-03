@@ -8,29 +8,29 @@ import { BookDiscountInfo } from '../emailUtils';
  */
 const formatBookDetails = (details: string): string => {
   if (!details) return '';
-  
+
   // Limpieza inicial y normalización
   let formattedDetails = details.replace(/,\s*/g, ' ').trim();
-  
+
   // Extraer ISBN si está al principio
   let isbnMatch = formattedDetails.match(/^ISBN:\s*([^\s]+)\s*/);
   let isbn = '';
-  
+
   if (isbnMatch) {
     isbn = isbnMatch[1].trim();
     formattedDetails = formattedDetails.replace(isbnMatch[0], '');
   }
-  
+
   // Eliminar cualquier otra mención de ISBN o ISBN13 del texto
   formattedDetails = formattedDetails.replace(/ISBN13?:\s*[^,\s]+\s*,?/g, '');
   formattedDetails = formattedDetails.replace(/ISBN13?\s+[^,\s]+\s*,?/g, '');
-  
+
   // Extraer "Detalles adicionales:" si está presente
   const detailsPrefix = 'Detalles adicionales:';
   if (formattedDetails.includes(detailsPrefix)) {
     formattedDetails = formattedDetails.replace(detailsPrefix, '').trim();
   }
-  
+
   // Definir pares clave-valor conocidos
   const knownPairs = [
     { key: 'Formato', value: '' },
@@ -44,47 +44,47 @@ const formatBookDetails = (details: string): string => {
     { key: 'Peso', value: '' },
     { key: 'Categorías', value: '' }
   ];
-  
+
   // Construir el HTML formateado
   let htmlDetails = '';
-  
+
   // Añadir ISBN si se encontró
   if (isbn) {
     htmlDetails += `<div class="detail-item"><span class="detail-label">ISBN:</span> <span class="detail-value">${isbn}</span></div>`;
   }
-  
+
   // Enfoque más robusto: dividir por palabras clave conocidas
   // Primero, crear un patrón regex para encontrar todas las palabras clave
   const keywordsPattern = new RegExp(
     '\\b(' + knownPairs.map(pair => pair.key).join('|') + ')\\b', 'g'
   );
-  
+
   // Encontrar todas las ocurrencias de palabras clave
   const matches = [...formattedDetails.matchAll(new RegExp(keywordsPattern, 'g'))];
-  
+
   if (matches && matches.length > 0) {
     for (let i = 0; i < matches.length; i++) {
       const currentMatch = matches[i];
       const currentKeyword = currentMatch[0];
       const currentIndex = currentMatch.index;
-      
+
       // Determinar dónde termina el valor (hasta la próxima palabra clave o el final)
       let endIndex = formattedDetails.length;
       if (i < matches.length - 1) {
         endIndex = matches[i + 1].index;
       }
-      
+
       // Extraer el valor
       let value = formattedDetails.substring(currentIndex + currentKeyword.length, endIndex).trim();
-      
+
       // Limpiar el valor (quitar ":" si existe)
       value = value.replace(/^:\s*/, '');
-      
+
       // Casos especiales
       if (currentKeyword === 'Editorial' && value.includes('Año')) {
         const parts = value.split('Año');
         value = parts[0].trim();
-        
+
         // Añadir el año como un detalle separado si contiene un número
         const yearMatch = parts[1]?.match(/\d+/);
         if (yearMatch) {
@@ -94,7 +94,7 @@ const formatBookDetails = (details: string): string => {
       } else if (currentKeyword === 'Idioma' && value.includes('N° páginas')) {
         const parts = value.split('N° páginas');
         value = parts[0].trim();
-        
+
         // Añadir páginas como un detalle separado si contiene un número
         const pagesMatch = parts[1]?.match(/\d+/);
         if (pagesMatch) {
@@ -107,7 +107,7 @@ const formatBookDetails = (details: string): string => {
       } else if (currentKeyword === 'Dimensiones' && value.includes('Peso')) {
         const parts = value.split('Peso');
         value = parts[0].trim();
-        
+
         // Añadir peso como un detalle separado
         const pesoMatch = parts[1]?.match(/[\d.]+/);
         if (pesoMatch) {
@@ -115,14 +115,14 @@ const formatBookDetails = (details: string): string => {
           htmlDetails += `<div class="detail-item"><span class="detail-label">Peso:</span> <span class="detail-value">${pesoValue}</span></div>`;
         }
       }
-      
+
       // Añadir el detalle al HTML si tiene valor
       if (value) {
         htmlDetails += `<div class="detail-item"><span class="detail-label">${currentKeyword}:</span> <span class="detail-value">${value}</span></div>`;
       }
     }
   }
-  
+
   // Buscar Categorías específicamente
   if (formattedDetails.includes('Categorías')) {
     const categoriasMatch = formattedDetails.match(/Categorías\s+([^A-Z]+)(?=[A-Z]|$)/);
@@ -130,7 +130,7 @@ const formatBookDetails = (details: string): string => {
       htmlDetails += `<div class="detail-item"><span class="detail-label">Categorías:</span> <span class="detail-value">${categoriasMatch[1].trim()}</span></div>`;
     }
   }
-  
+
   return htmlDetails;
 };
 
@@ -142,7 +142,7 @@ const formatBookDetails = (details: string): string => {
  */
 export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User): string => {
   const { title, author, imageUrl, currentPrice, lastPrice, discount, link, description, details, previousPrices, lowestPrice, lowestPriceDate } = bookInfo;
-  
+
   const discountPercentage = lastPrice ? ((lastPrice - currentPrice) / lastPrice * 100).toFixed(2) : 'N/A';
   const formattedCurrentPrice = `$${currentPrice.toLocaleString()}`;
   const formattedLastPrice = lastPrice ? `$${lastPrice.toLocaleString()}` : 'N/A';
@@ -154,7 +154,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   if (previousPrices && previousPrices.length > 0) {
     // Limit to 3 previous prices for better display
     const pricesToShow = previousPrices.slice(0, 3);
-    
+
     previousPricesHTML = `
     <div class="previous-prices">
       <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Historial de Precios</h4>
@@ -172,7 +172,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   if (lowestPrice && lowestPrice > 0) {
     const formattedLowestPrice = `$${lowestPrice.toLocaleString()}`;
     const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
-    
+
     lowestPriceHTML = `
     <div class="price-info" style="background-color: rgba(0, 78, 89, 0.1); border-left: 4px solid #004E59; padding: 10px;">
       <span class="price-label">Precio mínimo:</span>
@@ -451,15 +451,15 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
               
               ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
 
-              <div style="display: flex; justify-content: space-between; width: 100%; margin: 10px 0 !important; padding: 10px !important; background-color: rgba(0, 78, 89, 0.05) !important; border-radius: 5px !important;">
-                <span class="price-label" style="align-self: flex-start;">Precio:</span>
-                <div style="text-align: right;">
+            <div style="display: flex; justify-content: space-between; width: 100%; margin: 10px 0 !important; padding: 10px !important; background-color: rgba(0, 78, 89, 0.05) !important; border-radius: 5px !important;">
+              <span class="price-label" style="align-self: flex-start;">Precio:</span>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
                   <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 5px;">${formattedLastPrice}</div>
                   <span class="price-value" style="font-weight: bold; font-size: 1.1em;">${formattedCurrentPrice}</span>
+                  <p class="discount" style="margin: 8px 0 0 0; text-align: right; width: 100%; display: block; font-weight: bold;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
                 </div>
-                <p class="discount" style="margin: 8px 0 0 0; text-align: start; width: 100%; display: block; font-weight: bold;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
               </div>
-              
+
               ${lowestPriceHTML}
               ${previousPricesHTML}
               
@@ -501,7 +501,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
  */
 export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: User): string => {
   const { title, author, imageUrl, currentPrice, link, description, details, lowestPrice, lowestPriceDate } = bookInfo;
-  
+
   const formattedCurrentPrice = `$${currentPrice.toLocaleString()}`;
   const today = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -510,7 +510,7 @@ export const generateBackInStockEmailHTML = (bookInfo: BookDiscountInfo, user: U
   if (lowestPrice && lowestPrice > 0) {
     const formattedLowestPrice = `$${lowestPrice.toLocaleString()}`;
     const formattedLowestPriceDate = lowestPriceDate ? new Date(lowestPriceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
-    
+
     lowestPriceHTML = `
     <div class="price-info" style="background-color: rgba(0, 78, 89, 0.1); border-left: 4px solid #004E59; padding: 10px;">
       <span class="price-label">Precio mínimo:</span>
