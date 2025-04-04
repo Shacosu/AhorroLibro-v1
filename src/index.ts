@@ -5,9 +5,25 @@ import bookRoutes from './routes/bookRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
 import { initCronJobs } from './utils/cronJobs';
 import cors from 'cors';
+import { getRedisClient } from './config/redis-config';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Initialize Redis
+const initRedis = async () => {
+  try {
+    await getRedisClient();
+    console.log('Redis initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Redis:', error);
+    console.warn('Application will continue without Redis caching');
+  }
+};
 
 // Configurar middleware para parsear JSON con opciones más robustas
 app.use(express.json({ 
@@ -36,8 +52,11 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server is running at http://localhost:${port}`);
+  
+  // Initialize Redis
+  await initRedis();
   
   if (process.env.NODE_ENV === 'production') {
     // Initialize cron jobs after server starts
