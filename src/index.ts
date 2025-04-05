@@ -39,6 +39,7 @@ app.use(cors({
   origin: [
     'http://localhost:3001', 
     'https://ahorrolibro.cl',
+    'https://www.ahorrolibro.cl'
   ],
   credentials: true
 }));
