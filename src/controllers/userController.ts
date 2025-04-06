@@ -166,8 +166,64 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     // Obtener el token de la cookie
     const token = req.cookies.auth_token;
     
+    // Log para depuración
+    console.log('Refresh token request received. Cookie present:', !!token);
+    
     if (!token) {
-      res.status(401).json({ error: 'No hay token para refrescar' });
+      // Intentar obtener el token del encabezado de autorización como alternativa
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const headerToken = authHeader.substring(7);
+        console.log('Using Authorization header token instead of cookie');
+        
+        try {
+          const decoded = verifyToken(headerToken);
+          const userId = decoded.userId;
+          
+          // Buscar el usuario
+          const user = await prisma.user.findUnique({ 
+            where: { id: userId },
+            omit: {
+              password: true
+            }
+          });
+          
+          if (!user) {
+            res.status(404).json({ error: 'Usuario no encontrado' });
+            return;
+          }
+          
+          // Generar un nuevo token
+          const newToken = signToken({ userId });
+          
+          // Establecer el nuevo token en una cookie
+          res.cookie('auth_token', newToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
+            maxAge: 24 * 60 * 60 * 1000, // 24 horas
+            domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
+          });
+          
+          // Enviar respuesta con datos del usuario
+          res.json({ 
+            success: true,
+            message: 'Token refrescado correctamente desde header',
+            user,
+            token: newToken
+          });
+          return;
+        } catch (error) {
+          console.error('Error al verificar token del header:', error);
+          // Continuar con el flujo normal si el token del header también falla
+        }
+      }
+      
+      res.status(401).json({ 
+        error: 'No hay token para refrescar',
+        cookiesPresent: Object.keys(req.cookies).length > 0,
+        allCookies: Object.keys(req.cookies)
+      });
       return;
     }
     
@@ -175,6 +231,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     try {
       const decoded = verifyToken(token);
       const userId = decoded.userId;
+      
+      console.log('Token verified successfully for user ID:', userId);
       
       // Buscar el usuario para asegurarnos de que existe
       const user = await prisma.user.findUnique({ 
@@ -185,6 +243,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       });
       
       if (!user) {
+        console.log('User not found for ID:', userId);
         res.status(404).json({ error: 'Usuario no encontrado' });
         return;
       }
@@ -201,6 +260,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
       });
       
+      console.log('New token generated and cookie set');
+      
       // Enviar respuesta con datos del usuario
       res.json({ 
         success: true,
@@ -210,10 +271,17 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       });
     } catch (error) {
       // Si hay un error al verificar el token (expirado o inválido)
-      res.status(401).json({ error: 'Token inválido o expirado' });
+      console.error('Error al verificar token:', error);
+      res.status(401).json({ 
+        error: 'Token inválido o expirado',
+        message: error instanceof Error ? error.message : 'Error desconocido'
+      });
     }
   } catch (error) {
     console.error('Error al refrescar token:', error);
-    res.status(500).json({ error: 'Error al refrescar el token' });
+    res.status(500).json({ 
+      error: 'Error al refrescar el token',
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    });
   }
 };
