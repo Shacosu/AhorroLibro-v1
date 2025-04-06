@@ -8,25 +8,9 @@ interface AuthRequest extends Request {
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  // Log all possible token locations for debugging
+  const token = req.cookies?.auth_token;
+  console.log(token || 'No token found')
   
-  // Try to get token from multiple sources
-  // 1. From cookie (primary method)
-  let token = req.cookies?.auth_token;
-  
-  // 2. From Authorization header (Bearer token)
-  if (!token && req.headers.authorization) {
-    const authHeader = req.headers.authorization;
-    if (authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7);
-    }
-  }
-  
-  // 3. From query parameter (less secure, but useful for debugging)
-  if (!token && req.query.token) {
-    token = req.query.token as string;
-  }
-
   if (!token) {
     res.status(401).json({ error: 'Acceso denegado. No has iniciado sesión.' });
     return;

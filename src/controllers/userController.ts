@@ -95,9 +95,10 @@ export const login = async (req: Request, res: Response) => {
     // Establecer el token en una cookie segura
     res.cookie('auth_token', token, {
       httpOnly: true,          // No accesible desde JavaScript
-      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-      sameSite: 'none',        // Permitir cookies entre dominios diferentes en producción
+      secure: true,            // Siempre usar secure cuando sameSite es 'none'
+      sameSite: 'none',        // Permitir cookies entre dominios diferentes
       maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      path: '/',               // Asegurar que la cookie esté disponible en toda la aplicación
     });
     
     // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
@@ -117,8 +118,9 @@ export const logout = async (req: Request, res: Response) => {
   // Eliminar la cookie de autenticación
   res.clearCookie('auth_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true, // Always use secure for sameSite: 'none'
     sameSite: 'none',
+    path: '/',
   });
   
   // Enviar respuesta de éxito
@@ -197,9 +199,10 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
           // Establecer el nuevo token en una cookie
           res.cookie('auth_token', newToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true, // Always use secure for sameSite: 'none'
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
+            path: '/',
           });
           
           // Enviar respuesta con datos del usuario
@@ -251,9 +254,10 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       // Establecer el nuevo token en una cookie
       res.cookie('auth_token', newToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true, // Always use secure for sameSite: 'none'
         sameSite: 'none',
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        path: '/',
       });
       
       console.log('New token generated and cookie set');

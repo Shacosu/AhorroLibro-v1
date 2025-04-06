@@ -1,4 +1,4 @@
-import { getCache, setCache, deleteCache, clearCache, CACHE_TTL } from '../config/redis-config';
+import { getCache, setCache, clearCache, CACHE_TTL } from '../config/redis-config';
 
 // Cache key prefixes
 export const CACHE_KEYS = {
