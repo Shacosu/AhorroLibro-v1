@@ -96,15 +96,17 @@ export const login = async (req: Request, res: Response) => {
     res.cookie('auth_token', token, {
       httpOnly: true,          // No accesible desde JavaScript
       secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
-      sameSite: 'strict',      // Protección contra CSRF
-      maxAge: 24 * 60 * 60 * 1000 // 24 horas en milisegundos
+      sameSite: 'none',        // Permitir cookies entre dominios diferentes en producción
+      maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined // Dominio para producción
     });
     
     // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
     res.json({ 
       success: true,
       message: 'Inicio de sesión exitoso',
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      token: token // Incluir el token en la respuesta para manejo manual en el cliente si es necesario
     });
   } catch (error) {
     console.error('Error en login:', error);
@@ -114,7 +116,12 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   // Eliminar la cookie de autenticación
-  res.clearCookie('auth_token');
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
+  });
   
   // Enviar respuesta de éxito
   res.json({ 
@@ -189,15 +196,17 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       res.cookie('auth_token', newToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+        sameSite: 'none',
+        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
       });
       
       // Enviar respuesta con datos del usuario
       res.json({ 
         success: true,
         message: 'Token refrescado correctamente',
-        user
+        user,
+        token: newToken // Incluir el token en la respuesta para manejo manual en el cliente si es necesario
       });
     } catch (error) {
       // Si hay un error al verificar el token (expirado o inválido)
