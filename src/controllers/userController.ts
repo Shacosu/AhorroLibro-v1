@@ -98,7 +98,6 @@ export const login = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
       sameSite: 'none',        // Permitir cookies entre dominios diferentes en producción
       maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
-      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined // Dominio para producción
     });
     
     // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
@@ -120,7 +119,6 @@ export const logout = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'none',
-    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
   });
   
   // Enviar respuesta de éxito
@@ -202,7 +200,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
-            domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
           });
           
           // Enviar respuesta con datos del usuario
@@ -257,7 +254,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'none',
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
-        domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined
       });
       
       console.log('New token generated and cookie set');
