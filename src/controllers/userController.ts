@@ -96,7 +96,7 @@ export const login = async (req: Request, res: Response) => {
     res.cookie('auth_token', token, {
       httpOnly: true,          // No accesible desde JavaScript
       secure: process.env.NODE_ENV === 'production',            // Siempre usar secure cuando sameSite es 'none'
-      sameSite: 'none',        // Permitir cookies entre dominios diferentes
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',        // Permitir cookies entre dominios diferentes
       maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
       path: '/',               // Asegurar que la cookie esté disponible en toda la aplicación
     });
@@ -118,8 +118,8 @@ export const logout = async (req: Request, res: Response) => {
   // Eliminar la cookie de autenticación
   res.clearCookie('auth_token', {
     httpOnly: true,
-    secure: true, // Always use secure for sameSite: 'none'
-    sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
   });
   
@@ -200,7 +200,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
           res.cookie('auth_token', newToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
-            sameSite: 'none',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
             path: '/',
           });
@@ -255,7 +255,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       res.cookie('auth_token', newToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
-        sameSite: 'none',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         path: '/',
       });
