@@ -98,6 +98,7 @@ export const login = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production',            // Siempre usar secure cuando sameSite es 'none'
       sameSite: "none",        // Permitir cookies entre dominios diferentes
       maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      domain: process.env.NODE_ENV === 'production' ? 'ahorro-libro.com' : 'localhost',
       path: '/',               // Asegurar que la cookie esté disponible en toda la aplicación
     });
     
@@ -120,6 +121,7 @@ export const logout = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
     sameSite: "none",
+    domain: process.env.NODE_ENV === 'production' ? 'ahorro-libro.com' : 'localhost',
     path: '/',
   });
   
@@ -202,6 +204,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
             secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
             sameSite: "none",
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
+            domain: process.env.NODE_ENV === 'production' ? 'ahorro-libro.com' : 'localhost',
             path: '/',
           });
           
@@ -256,7 +259,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
         sameSite: "none",
-        maxAge: 24 * 60 * 60 * 1000, // 24 horas
+        maxAge: 24 * 60 * 60 * 1000,
+        domain: process.env.NODE_ENV === 'production' ? 'ahorro-libro.com' : 'localhost',
         path: '/',
       });
       
