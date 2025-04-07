@@ -95,7 +95,7 @@ export const login = async (req: Request, res: Response) => {
     // Establecer el token en una cookie segura
     res.cookie('auth_token', token, {
       httpOnly: true,          // No accesible desde JavaScript
-      secure: true,            // Siempre usar secure cuando sameSite es 'none'
+      secure: process.env.NODE_ENV === 'production',            // Siempre usar secure cuando sameSite es 'none'
       sameSite: 'none',        // Permitir cookies entre dominios diferentes
       maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
       path: '/',               // Asegurar que la cookie esté disponible en toda la aplicación
@@ -199,7 +199,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
           // Establecer el nuevo token en una cookie
           res.cookie('auth_token', newToken, {
             httpOnly: true,
-            secure: true, // Always use secure for sameSite: 'none'
+            secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
             sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
             path: '/',
@@ -254,7 +254,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       // Establecer el nuevo token en una cookie
       res.cookie('auth_token', newToken, {
         httpOnly: true,
-        secure: true, // Always use secure for sameSite: 'none'
+        secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
         sameSite: 'none',
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         path: '/',
