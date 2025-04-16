@@ -97,7 +97,6 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
       path: '/',
     });
     
@@ -120,7 +119,6 @@ export const logout = async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
     path: '/',
   });
   
@@ -203,7 +201,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
             secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
             sameSite: "none",
             maxAge: 24 * 60 * 60 * 1000, // 24 horas
-            domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : 'localhost',
             path: '/',
           });
           
@@ -259,7 +256,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
         sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
-        domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : 'localhost',
         path: '/',
       });
       
