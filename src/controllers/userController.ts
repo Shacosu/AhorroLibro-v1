@@ -92,14 +92,13 @@ export const login = async (req: Request, res: Response) => {
     // Eliminar la contraseña del objeto usuario
     const { password: _, ...userWithoutPassword } = user;
     
-    // Establecer el token en una cookie segura
+    // Setear cookie con atributos correctos según entorno
     res.cookie('auth_token', token, {
-      httpOnly: true,          // No accesible desde JavaScript
-      secure: process.env.NODE_ENV === 'production',            // Siempre usar secure cuando sameSite es 'none'
-      sameSite: "none",        // Permitir cookies entre dominios diferentes
-      maxAge: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
-      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : 'localhost',
-      path: '/',               // Asegurar que la cookie esté disponible en toda la aplicación
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
+      path: '/',
     });
     
     // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
@@ -119,9 +118,9 @@ export const logout = async (req: Request, res: Response) => {
   // Eliminar la cookie de autenticación
   res.clearCookie('auth_token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Always use secure for sameSite: 'none'
-    sameSite: "none",
-    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : 'localhost',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
     path: '/',
   });
   
