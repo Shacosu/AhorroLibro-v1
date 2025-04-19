@@ -98,6 +98,7 @@ export const login = async (req: Request, res: Response) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
+      domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
     });
     
     // Enviar respuesta con datos del usuario (sin el token en el cuerpo)
@@ -120,6 +121,7 @@ export const logout = async (req: Request, res: Response) => {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : undefined,
   });
   
   // Enviar respuesta de éxito
