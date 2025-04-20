@@ -144,6 +144,8 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   const { title, author, imageUrl, currentPrice, lastPrice, discount, link, description, details, previousPrices, lowestPrice, lowestPriceDate } = bookInfo;
 
   const discountPercentage = lastPrice ? ((lastPrice - currentPrice) / lastPrice * 100).toFixed(2) : 'N/A';
+  const ahorroTotal = lastPrice && currentPrice ? lastPrice - currentPrice : 0;
+  const formattedAhorroTotal = `$${ahorroTotal.toLocaleString()}`;
   const formattedCurrentPrice = `$${currentPrice.toLocaleString()}`;
   const formattedLastPrice = lastPrice ? `$${lastPrice.toLocaleString()}` : 'N/A';
   const formattedDiscount = `$${discount.toLocaleString()}`;
@@ -450,19 +452,27 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
               </table>
               
               ${description ? `<div class="book-description">${description.substring(0, 150)}${description.length > 150 ? '...' : ''}</div>` : ''}
-
-            <div style="display: flex; justify-content: space-between; width: 100%; margin: 10px 0 !important; padding: 10px !important; background-color: rgba(0, 78, 89, 0.05) !important; border-radius: 5px !important;">
-              <span class="price-label" style="align-self: flex-start;">Precio:</span>
-                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
-                  <div style="font-size: 0.85em; color: #777; opacity: 0.7; text-decoration: line-through; margin-bottom: 5px;">${formattedLastPrice}</div>
-                  <span class="price-value" style="font-weight: bold; font-size: 1.1em;">${formattedCurrentPrice}</span>
-                  <p class="discount" style="margin: 8px 0 0 0; text-align: right; width: 100%; display: block; font-weight: bold;">(Ahorro: ${formattedDiscount} | ${discountPercentage}%)</p>
+              <div class="price-summary" style="background: #f4f8f7; border-radius: 6px; padding: 16px; margin-bottom: 12px;">
+                <div style="margin-bottom: 6px;">
+                  <span style="color: #888; text-decoration: line-through; font-size: 1em;">Precio anterior: <b>${formattedLastPrice}</b></span>
+                </div>
+                <div style="margin-bottom: 6px;">
+                  <span style="color: #004E59; font-size: 1.3em; font-weight: bold;">Precio actual: ${formattedCurrentPrice}</span>
+                </div>
+                <div style="margin-bottom: 6px;">
+                  <span style="color: #00875a; font-size: 1.1em; font-weight: 600;">¡Ahorro total: ${formattedAhorroTotal}!</span>
+                </div>
+                <div style="margin-bottom: 8px;">
+                  <span style="background: #eafaf5; color: #00875a; border-radius: 4px; padding: 2px 8px; font-size: 1em; font-weight: 600;">
+                    Descuento: ${discountPercentage}%
+                  </span>
+                </div>
+                <div style="font-size: 0.97em; color: #555;">
+                  Aprovecha este descuento antes de que cambie el precio.
                 </div>
               </div>
-
               ${lowestPriceHTML}
               ${previousPricesHTML}
-              
               ${details ? `
               <div class="details-section">
                 <h4 style="margin-bottom: 10px; color: #004E59; font-size: 1em;">Detalles del libro:</h4>

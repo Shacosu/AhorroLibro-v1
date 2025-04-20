@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import userRoutes from './routes/userRoutes';
 import bookRoutes from './routes/bookRoutes';
 import subscriptionRoutes from './routes/subscriptionRoutes';
+import testRoutes from './routes/testRoutes';
 import { initCronJobs } from './utils/cronJobs';
 import cors from 'cors';
 import { getRedisClient } from './config/redis-config';
@@ -47,6 +48,7 @@ app.use(cors({
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/books', bookRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/test', testRoutes);
 
 // Ruta para manejar errores 404
 app.use('*', (req, res) => {
