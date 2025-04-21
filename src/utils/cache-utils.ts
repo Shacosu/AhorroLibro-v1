@@ -100,3 +100,13 @@ export const clearAllBookCaches = async (): Promise<void> => {
   await clearCache(`${CACHE_KEYS.BOOK}*`);
   await clearCache(`${CACHE_KEYS.BOOKS_LIST}*`);
 };
+
+/**
+ * Limpia el caché relacionado a un usuario específico (libros, listas, usuario)
+ * @param userId ID del usuario
+ */
+export const clearUserCache = async (userId: number | string): Promise<void> => {
+  // Borra caché de usuario, libros y listas asociadas a ese usuario
+  await clearCache(`${CACHE_KEYS.USER}${userId}`);
+  await clearCache(`${CACHE_KEYS.BOOKS_LIST}*userId=${userId}*`); // Si usas userId en query
+};

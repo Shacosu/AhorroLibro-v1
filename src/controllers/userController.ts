@@ -83,6 +83,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
     
+
     // Crear payload para el token
     const payload = { userId: user.id };
     
@@ -167,15 +168,11 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     // Obtener el token de la cookie
     const token = req.cookies.auth_token;
     
-    // Log para depuración
-    console.log('Refresh token request received. Cookie present:', !!token);
-    
     if (!token) {
       // Intentar obtener el token del encabezado de autorización como alternativa
       const authHeader = req.headers.authorization;
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const headerToken = authHeader.substring(7);
-        console.log('Using Authorization header token instead of cookie');
         
         try {
           const decoded = verifyToken(headerToken);
@@ -234,8 +231,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       const decoded = verifyToken(token);
       const userId = decoded.userId;
       
-      console.log('Token verified successfully for user ID:', userId);
-      
       // Buscar el usuario para asegurarnos de que existe
       const user = await prisma.user.findUnique({ 
         where: { id: userId },
@@ -262,8 +257,6 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         domain: process.env.NODE_ENV === 'production' ? '.ahorrolibro.cl' : 'localhost',
         path: '/',
       });
-      
-      console.log('New token generated and cookie set');
       
       // Enviar respuesta con datos del usuario
       res.json({ 

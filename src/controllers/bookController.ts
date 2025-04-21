@@ -21,7 +21,7 @@ export const getAllBooks = async (req: Request, res: Response): Promise<void> =>
     const pageSize = parseInt(req.query.pageSize as string) || 12;
     // Obtener el userId del token JWT (añadido por el middleware de autenticación)
     const userId = (req as any).user?.userId;
-    
+
     // Validar que se tenga un userId (debería estar presente si pasó por el middleware de autenticación)
     if (!userId) {
       res.status(401).json({ error: 'No autorizado. Se requiere autenticación.' });
@@ -564,5 +564,85 @@ export const getBookById = async (req: Request, res: Response): Promise<void> =>
   } catch (error) {
     console.error('Error al obtener libro por ID:', error);
     res.status(500).json({ error: 'Error al obtener el libro' });
+  }
+};
+
+// Buscar libros por nombre (no estricto, insensible a mayúsculas/minúsculas, solo del usuario autenticado)
+export const searchBooks = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId;
+    const { q } = req.query;
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado. Se requiere autenticación.' });
+      return;
+    }
+    if (!q || typeof q !== 'string' || q.trim().length === 0) {
+      res.status(400).json({ error: 'Debe proporcionar un término de búsqueda en el parámetro "q"' });
+      return;
+    }
+    // Buscar libros con el término y traer priceHistories
+    const books = await prisma.book.findMany({
+      where: {
+        users: { some: { userId: userId } },
+        title: {
+          contains: q,
+          mode: 'insensitive',
+        },
+      },
+      orderBy: { title: 'asc' },
+      take: 20,
+      include: {
+        priceHistories: {
+          orderBy: { date: 'desc' },
+          take: 1
+        }
+      }
+    });
+
+    // Para cada libro, calcular precios igual que en getAllBooks
+    const booksWithPriceInfo = await Promise.all(books.map(async (book) => {
+      // Obtener historial completo para mínimo y descuento
+      const priceHistory = await prisma.priceHistory.findMany({
+        where: {
+          bookId: book.id,
+          price: { gt: 0 }
+        },
+        orderBy: { date: 'desc' }
+      });
+      let minPrice = null;
+      if (priceHistory.length > 0) {
+        const pricesGreaterThanZero = priceHistory.filter(ph => ph.price > 0);
+        if (pricesGreaterThanZero.length > 0) {
+          minPrice = Math.min(...pricesGreaterThanZero.map(ph => ph.price));
+        }
+      }
+      const currentPrice = book.priceHistories && book.priceHistories.length > 0 ? book.priceHistories[0].price : book.price;
+      let previousPrice = null;
+      let realDiscount = null;
+      let realDiscountPercentage = null;
+      if (priceHistory.length >= 2) {
+        previousPrice = priceHistory[1].price;
+        if (previousPrice > currentPrice) {
+          realDiscount = previousPrice - currentPrice;
+          realDiscountPercentage = Math.round((realDiscount / previousPrice) * 100);
+        }
+      }
+      const { priceHistories, ...bookData } = book;
+      return {
+        ...bookData,
+        minPrice,
+        currentPrice,
+        previousPrice,
+        realDiscount,
+        realDiscountPercentage
+      };
+    }));
+
+    res.json({ data: booksWithPriceInfo });
+    return;
+  } catch (error) {
+    console.error('Error al buscar libros:', error);
+    res.status(500).json({ error: 'Error al buscar libros' });
+    return;
   }
 };
