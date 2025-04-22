@@ -4,9 +4,9 @@ import { generateDiscountEmailHTML, generateBackInStockEmailHTML } from './templ
 import { credentials } from './credentials';
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
+  host: 'smtp.zoho.com',
+  port: 465,
+  secure: true,
   auth: {
     user: credentials.emailUser,
     pass: credentials.emailPassword,
