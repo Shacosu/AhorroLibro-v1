@@ -185,6 +185,30 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   // Format book details using the helper function
   const formattedBookDetails = details ? formatBookDetails(details) : '';
 
+  // --- JSON-LD para oferta de descuento reconocible por Gmail y otros clientes ---
+  const discountLDObject = {
+    "@context": "http://schema.org",
+    "@type": "EmailMessage",
+    description: `${discountPercentage}% de descuento en el libro ${title}`,
+    publisher: {
+      "@type": "Organization",
+      name: "Ahorro Libro",
+      url: "https://ahorrolibro.cl"
+    },
+    about: {
+      "@type": "Offer",
+      price: `${currentPrice}`,
+      priceCurrency: "CLP"
+    },
+    potentialAction: {
+      "@type": "ViewAction",
+      target: link,
+      name: "Ver oferta"
+    }
+  };
+
+  const discountJSONLD = `\n<script type="application/ld+json">\n${JSON.stringify(discountLDObject, null, 2)}\n<\/script>`;
+
   return `
   <!DOCTYPE html>
 <html lang="es">
@@ -192,6 +216,7 @@ export const generateDiscountEmailHTML = (bookInfo: BookDiscountInfo, user: User
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Descuento en Libro</title>
+  ${discountJSONLD}
   <style>
     body {
       font-family: Arial, sans-serif !important;
