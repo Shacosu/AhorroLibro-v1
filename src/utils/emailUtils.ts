@@ -4,12 +4,12 @@ import { generateDiscountEmailHTML, generateBackInStockEmailHTML } from './templ
 import { credentials } from './credentials';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.mailersend.net',
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
-  secure: false, // MailerSend recomienda TLS, pero no SSL puro
+  host: 'smtp.zoho.com',
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
+    user: credentials.emailUser,
+    pass: credentials.emailPassword,
   },
 });
 
@@ -32,7 +32,7 @@ export const sendDiscountEmail = (bookInfo: BookDiscountInfo, user: User) => {
   try {
     // Generar el HTML del correo
     const htmlContent = generateDiscountEmailHTML(bookInfo, user);
-    console.log('HTML generado para el correo de descuento:', htmlContent);
+    console.log(htmlContent)
     const discountPercentage = bookInfo.lastPrice ? ((bookInfo.lastPrice - bookInfo.currentPrice) / bookInfo.lastPrice * 100).toFixed(2) : 'N/A';
     const mailOptions = {
       from: '"Ahorro Libro" <noreply@ahorrolibro.cl>',
