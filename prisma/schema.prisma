@@ -48,6 +48,7 @@ model Book {
   description    String
   users          UserBook[]
   priceHistories PriceHistory[]
+  createdAt      DateTime      @default(now())
 
   @@map("books")
 }
@@ -58,6 +59,7 @@ model UserBook {
   userId Int
   book   Book @relation(fields: [bookId], references: [id])
   bookId Int
+  createdAt DateTime @default(now())
 
   @@unique([userId, bookId])
   @@map("user_books")

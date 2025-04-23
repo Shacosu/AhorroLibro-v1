@@ -281,3 +281,44 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     });
   }
 };
+
+// Endpoint para editar información del usuario, incluyendo porcentaje de descuento
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.id ? Number(req.params.id) : (req as any).user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: 'No autorizado' });
+      return;
+    }
+    // Los campos que se pueden actualizar
+    const { name, lastname, phone, discountPercentage, username, email } = req.body;
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (lastname !== undefined) updateData.lastname = lastname;
+    if (phone !== undefined) updateData.phone = phone;
+    if (discountPercentage !== undefined) {
+      if (typeof discountPercentage !== 'number' || discountPercentage < 5) {
+        res.status(400).json({ error: 'El porcentaje de descuento no puede ser menor al 5%.' });
+        return;
+      }
+      updateData.discountPercentage = discountPercentage;
+    }
+    if (username !== undefined) updateData.username = username;
+    if (email !== undefined) updateData.email = email;
+
+    if (Object.keys(updateData).length === 0) {
+      res.status(400).json({ error: 'No se proporcionaron campos para actualizar.' });
+      return;
+    }
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+    // No devolver la contraseña
+    const { password, ...userWithoutPassword } = updatedUser;
+    res.json({ success: true, user: userWithoutPassword });
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error);
+    res.status(500).json({ error: 'Error al actualizar usuario' });
+  }
+};

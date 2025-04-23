@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllBooks, monitorAndProcessLists, addUserList, monitorBooks, addBookToUser, getBookById, searchBooks } from '../controllers/bookController';
+import { getAllBooks, monitorAndProcessLists, addUserList, monitorBooks, addBookToUser, getBookById, searchBooks, getBooksRanking } from '../controllers/bookController';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
@@ -20,6 +20,7 @@ router.route('/search').get(
   authenticateToken,
   searchBooks
 );
+router.route('/ranking').get(getBooksRanking);
 router.route('/:id').get(
   authenticateToken, 
   getBookById
