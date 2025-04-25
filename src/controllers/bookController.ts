@@ -227,7 +227,43 @@ export const addUserList = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({ message: 'List added successfully', newUserList });
+    // Procesar inmediatamente la nueva lista agregada
+    try {
+      const bookLinks = await extractBookLinks(urlList);
+      const currentUserBooks = await prisma.userBook.findMany({
+        where: { userId: Number(userId) },
+        include: { book: true },
+      });
+      const currentBookIsbns = currentUserBooks.map((ub) => ub.book.isbn13);
+      const currentUserBooksMap = new Map(currentUserBooks.map((ub) => [ub.book.isbn13, ub]));
+      // Procesar cada enlace de libro
+      await Promise.all(bookLinks.map(async (bookLink) => {
+        try {
+          const bookResponse = await limiter.schedule(() => axios.get(bookLink));
+          const bookData = extractData(bookResponse.data as string, bookLink);
+          let book = await prisma.book.findUnique({ where: { isbn13: bookData.isbn13 } });
+          if (!book) {
+            book = await prisma.book.create({ data: bookData });
+          }
+          const userBook = currentUserBooksMap.get(bookData.isbn13);
+          if (!userBook) {
+            await prisma.userBook.create({
+              data: {
+                user: { connect: { id: Number(userId) } },
+                book: { connect: { id: book.id } },
+                from_list: true,
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Error processing book link during addUserList:', error);
+        }
+      }));
+    } catch (error) {
+      console.error('Error processing list immediately after addUserList:', error);
+    }
+
+    res.status(201).json({ message: 'List added and processed successfully', newUserList });
   } catch (error) {
     res.status(500).json({ error: 'Error adding list' });
   }
@@ -256,6 +292,7 @@ export const monitorAndProcessLists = async (req: Request, res: Response) => {
         });
 
         const currentBookIsbns = currentUserBooks.map((ub) => ub.book.isbn13);
+        const currentUserBooksMap = new Map(currentUserBooks.map((ub) => [ub.book.isbn13, ub]));
 
         // Procesar cada enlace de libro en paralelo
         const bookProcessingPromises = bookLinks.map(async (bookLink) => {
@@ -279,8 +316,9 @@ export const monitorAndProcessLists = async (req: Request, res: Response) => {
               console.log(`Book with ISBN ${bookData.isbn13} already exists.`);
             }
 
-            // Link the book to the user if not already linked
-            if (!currentBookIsbns.includes(bookData.isbn13)) {
+            // Link the book to the user if not already linked via lista
+            const userBook = currentUserBooksMap.get(bookData.isbn13);
+            if (!userBook) {
               console.log(`Linking book with ISBN ${bookData.isbn13} to user ${userList.userId}`);
               await prisma.userBook.create({
                 data: {
@@ -290,10 +328,11 @@ export const monitorAndProcessLists = async (req: Request, res: Response) => {
                   book: {
                     connect: { id: book.id },
                   },
+                  from_list: true,
                 },
               });
             }
-            
+
             return { bookLink, isbn13: bookData.isbn13, status: 'processed' };
           } catch (error) {
             console.error(`Error processing book link ${bookLink}:`, error);
@@ -304,10 +343,10 @@ export const monitorAndProcessLists = async (req: Request, res: Response) => {
         // Esperar a que se procesen todos los libros de esta lista
         const bookResults = await Promise.all(bookProcessingPromises);
         
-        // Unlink books that are no longer in the list
+        // Unlink books that are no longer in the list, SOLO los que fueron agregados por lista
         const bookLinksSet = new Set(bookLinks);
         for (const userBook of currentUserBooks) {
-          if (!bookLinksSet.has(userBook.book.link)) {
+          if (userBook.from_list && !bookLinksSet.has(userBook.book.link)) {
             await prisma.userBook.delete({
               where: {
                 userId_bookId: {

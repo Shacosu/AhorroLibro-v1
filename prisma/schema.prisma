@@ -60,6 +60,7 @@ model UserBook {
   book   Book @relation(fields: [bookId], references: [id])
   bookId Int
   createdAt DateTime @default(now())
+  from_list Boolean @default(false)
 
   @@unique([userId, bookId])
   @@map("user_books")
