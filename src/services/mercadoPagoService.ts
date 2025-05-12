@@ -16,7 +16,7 @@ const client = new MercadoPagoConfig({
 
 // Inicializar el objeto de pago y preapproval
 const preapproval = new PreApproval(client);
-const AMOUNT_SUBSCRIPTION = 950; // Ajustar al precio real en CLP
+const AMOUNT_SUBSCRIPTION = process.env.NODE_ENV === 'production' ? 4490 : 950;
 
 /**
  * Interfaz para los datos de la suscripción
