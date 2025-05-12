@@ -632,13 +632,9 @@ export const searchBooks = async (req: Request, res: Response) => {
     const books = await prisma.book.findMany({
       where: {
         users: { some: { userId: userId } },
-        title: {
-          contains: q,
-          mode: 'insensitive',
-        },
       },
       orderBy: { title: 'asc' },
-      take: 20,
+      take: 50, // Trae más para filtrar por acentos
       include: {
         priceHistories: {
           orderBy: { date: 'desc' },
@@ -647,8 +643,16 @@ export const searchBooks = async (req: Request, res: Response) => {
       }
     });
 
+    // Función para normalizar y quitar acentos
+    function normalizeText(str: string) {
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+    const normalizedQ = normalizeText(q);
+    // Filtrar manualmente los libros cuyo título normalizado incluya el término normalizado
+    const filteredBooks = books.filter(book => normalizeText(book.title).includes(normalizedQ));
+
     // Para cada libro, calcular precios igual que en getAllBooks
-    const booksWithPriceInfo = await Promise.all(books.map(async (book: any) => {
+    const booksWithPriceInfo = await Promise.all(filteredBooks.map(async (book: any) => {
       // Obtener historial completo para mínimo y descuento
       const priceHistory = await prisma.priceHistory.findMany({
         where: {
@@ -739,5 +743,51 @@ export const getBooksRanking = async (req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('Error al obtener ranking de libros:', error);
     res.status(500).json({ error: 'Error al obtener ranking de libros' });
+  }
+};
+
+// Desvincular (eliminar) un libro del usuario
+export const unlinkBookFromUser = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.userId || req.body.userId || req.params.userId;
+    const { bookId, isbn13 } = req.body.bookId ? req.body : req.params;
+    if (!userId || (!bookId && !isbn13)) {
+      res.status(400).json({ error: 'Faltan parámetros userId o bookId/isbn13' });
+      return;
+    }
+    let targetBookId = bookId;
+    if (!targetBookId && isbn13) {
+      const book = await prisma.book.findUnique({ where: { isbn13 } });
+      if (!book) {
+        res.status(404).json({ error: 'Libro no encontrado' });
+        return;
+      }
+      targetBookId = book.id;
+    }
+    // Verificar si existe la relación
+    const userBook = await prisma.userBook.findUnique({
+      where: {
+        userId_bookId: {
+          userId: Number(userId),
+          bookId: Number(targetBookId),
+        },
+      },
+    });
+    if (!userBook) {
+      res.status(404).json({ error: 'El libro no está vinculado al usuario' });
+      return;
+    }
+    await prisma.userBook.delete({
+      where: {
+        userId_bookId: {
+          userId: Number(userId),
+          bookId: Number(targetBookId),
+        },
+      },
+    });
+    res.json({ success: true, message: 'Libro desvinculado correctamente' });
+  } catch (error) {
+    console.error('Error al desvincular libro del usuario:', error);
+    res.status(500).json({ error: 'Error al desvincular libro del usuario' });
   }
 };

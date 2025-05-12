@@ -40,7 +40,8 @@ app.use(cors({
   origin: [
     'http://localhost:3001', 
     'https://ahorrolibro.cl',
-    'https://www.ahorrolibro.cl'
+    'https://www.ahorrolibro.cl',
+    'http://192.168.1.100:3001'
   ],
   credentials: true
 }));
@@ -57,9 +58,6 @@ app.use('*', (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Server is running at http://localhost:${port}`);
-  
-  // Initialize Redis
-  await initRedis();
   
   if (process.env.NODE_ENV === 'production') {
     // Initialize cron jobs after server starts
