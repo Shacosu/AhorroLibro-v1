@@ -218,14 +218,26 @@ export const addUserList = async (req: Request, res: Response) => {
       return;
     }
     // Create a new user list
-    const newUserList = await prisma.userList.create({
-      data: {
-        urlList,
-        user: {
-          connect: { id: Number(userId) },
+    let newUserList;
+    try {
+      newUserList = await prisma.userList.create({
+        data: {
+          urlList,
+          user: {
+            connect: { id: Number(userId) },
+          },
         },
-      },
-    });
+      });
+    } catch (error: any) {
+      // Manejar error de duplicado (código de error Prisma: P2002)
+      if (error.code === 'P2002' && error.meta && error.meta.target && error.meta.target.includes('userId_urlList')) {
+        res.status(409).json({ error: 'Esta lista ya ha sido agregada por este usuario.' });
+        return;
+      }
+      // Otros errores
+      res.status(500).json({ error: 'Error agregando la lista (DB)' });
+      return;
+    }
 
     // Procesar inmediatamente la nueva lista agregada
     try {
