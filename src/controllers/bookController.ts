@@ -401,6 +401,7 @@ export const monitorAndProcessLists = async (req: Request, res: Response) => {
 
 export const monitorBooks = async (req: Request, res: Response) => {
   try {
+    console.log(`[${new Date().toISOString()}] monitorBooks: Starting book monitoring process`);
     const books = await prisma.book.findMany({
       include: {
         users: {
@@ -410,44 +411,79 @@ export const monitorBooks = async (req: Request, res: Response) => {
         },
       },
     });
-    console.log(`Total books to monitor: ${books.length}`);
+    console.log(`[${new Date().toISOString()}] monitorBooks: Total books to monitor: ${books.length}`);
     
     // Crear un array de promesas para procesar los libros en paralelo
     const bookProcessingPromises = books.map(async (book) => {
       try {
-        console.log(`Scheduling check for book with ISBN ${book.isbn13}`);
+        console.log(`[${new Date().toISOString()}] monitorBooks: Processing book: ${book.title}, ISBN: ${book.isbn13}`);
+        console.log(`[${new Date().toISOString()}] monitorBooks: Fetching data from URL: ${book.link}`);
         // Usar limiter.schedule para controlar la concurrencia
         const bookResponse = await limiter.schedule(() => axios.get(book.link));
+        console.log(`[${new Date().toISOString()}] monitorBooks: Response received for ${book.isbn13}, status: ${bookResponse.status}`);
+        
         const bookData = extractData(bookResponse.data as string, book.link);
+        console.log(`[${new Date().toISOString()}] monitorBooks: Data extracted for ${book.isbn13}, price: ${bookData.price}`);
+        
+        // Verificar si el libro está en stock (disponible) basado en el precio
+        const inStock = bookData.price > 0;
+        console.log(`[${new Date().toISOString()}] monitorBooks: Book ${book.isbn13} in stock status: ${inStock}`);
 
+        console.log(`[${new Date().toISOString()}] monitorBooks: Fetching price history for book ${book.isbn13}`);
         const lastPriceHistory = await prisma.priceHistory.findFirst({
           where: { bookId: book.id },
           orderBy: { date: 'desc' },
         });
-
+        
         const lastPrice = lastPriceHistory ? lastPriceHistory.price : book.price;
+        console.log(`[${new Date().toISOString()}] monitorBooks: Last recorded price for ${book.isbn13}: ${lastPrice}, current DB price: ${book.price}`);
 
         if (bookData.price !== lastPrice) {
-          console.log(`Price change detected for book with ISBN ${book.isbn13}. Old price: ${lastPrice}, New price: ${bookData.price}`);
-          await prisma.priceHistory.create({
-            data: {
-              book: {
-                connect: { id: book.id },
+          console.log(`[${new Date().toISOString()}] monitorBooks: PRICE CHANGE DETECTED for ${book.isbn13}. Old price: ${lastPrice}, New price: ${bookData.price}`);
+          
+          // Actualizar el precio en la tabla principal del libro
+          console.log(`[${new Date().toISOString()}] monitorBooks: Updating main book record in DB for ${book.isbn13}`);
+          try {
+            await prisma.book.update({
+              where: { id: book.id },
+              data: { price: bookData.price }
+            });
+            console.log(`[${new Date().toISOString()}] monitorBooks: Successfully updated main book record for ${book.isbn13}`);
+          } catch (dbError) {
+            console.error(`[${new Date().toISOString()}] monitorBooks: ERROR updating main book record:`, dbError);
+            throw dbError; // Re-throw to be caught by the outer catch
+          }
+          
+          // Registrar en el historial de precios
+          console.log(`[${new Date().toISOString()}] monitorBooks: Creating price history record for ${book.isbn13}`);
+          try {
+            await prisma.priceHistory.create({
+              data: {
+                book: {
+                  connect: { id: book.id },
+                },
+                price: bookData.price,
+                date: new Date(),
               },
-              price: bookData.price,
-              date: new Date(),
-            },
-          });
+            });
+            console.log(`[${new Date().toISOString()}] monitorBooks: Successfully created price history for ${book.isbn13}`);
+          } catch (dbError) {
+            console.error(`[${new Date().toISOString()}] monitorBooks: ERROR creating price history:`, dbError);
+            throw dbError; // Re-throw to be caught by the outer catch
+          }
 
           // Obtener los últimos 5 registros de precio (excluyendo el actual)
+          console.log(`[${new Date().toISOString()}] monitorBooks: Fetching previous price history for ${book.isbn13}`);
           const previousPrices = await prisma.priceHistory.findMany({
             where: { bookId: book.id },
             orderBy: { date: 'desc' },
             take: 5,
             skip: 1, // skip the current price
           });
+          console.log(`[${new Date().toISOString()}] monitorBooks: Found ${previousPrices.length} previous price records for ${book.isbn13}`);
 
           // Obtener el precio más bajo histórico (excluyendo precios 0)
+          console.log(`[${new Date().toISOString()}] monitorBooks: Finding lowest historical price for ${book.isbn13}`);
           const lowestPrice = await prisma.priceHistory.findFirst({
             where: { 
               bookId: book.id,
@@ -455,6 +491,7 @@ export const monitorBooks = async (req: Request, res: Response) => {
             },
             orderBy: { price: 'asc' },
           });
+          console.log(`[${new Date().toISOString()}] monitorBooks: Lowest historical price for ${book.isbn13}: ${lowestPrice?.price || 'none found'}`);
 
           // Crear objeto con la información del libro para el correo
           const bookInfo = {
@@ -479,8 +516,13 @@ export const monitorBooks = async (req: Request, res: Response) => {
             if (user.plan === 'PREMIUM') {
               // Verificar si el libro vuelve a estar en stock (último precio era 0 y ahora es mayor a 0)
               if (lastPrice === 0 && bookData.price > 0) {
-                console.log(`Book with ISBN ${book.isbn13} is back in stock. Sending notification to user ${user.id}`);
-                sendBackInStockEmail(bookInfo, user);
+                console.log(`[${new Date().toISOString()}] monitorBooks: BACK IN STOCK ALERT for ${book.isbn13}. Sending notification to user ${user.id} (${user.email})`);
+                try {
+                  sendBackInStockEmail(bookInfo, user);
+                  console.log(`[${new Date().toISOString()}] monitorBooks: Successfully sent back-in-stock email for ${book.isbn13} to ${user.email}`);
+                } catch (emailError) {
+                  console.error(`[${new Date().toISOString()}] monitorBooks: ERROR sending back-in-stock email:`, emailError);
+                }
               } 
               // Si no es vuelta en stock, verificar si hay descuento
               else if (bookData.price < lastPrice && bookData.price > 0) {
@@ -488,35 +530,61 @@ export const monitorBooks = async (req: Request, res: Response) => {
                 const discount = lastPrice - bookData.price;
                 const discountPercentage = (discount / lastPrice) * 100;
                 const userDiscountPercentage = user.discountPercentage;
+                console.log(`[${new Date().toISOString()}] monitorBooks: DISCOUNT DETECTED for ${book.isbn13}. Discount: ${discount} (${discountPercentage.toFixed(2)}%), User threshold: ${userDiscountPercentage}%`);
 
                 // Enviar correo si el descuento supera el porcentaje configurado por el usuario
                 if (discountPercentage > userDiscountPercentage) {
-                  sendDiscountEmail(bookInfo, user);
+                  console.log(`[${new Date().toISOString()}] monitorBooks: Discount exceeds user threshold, sending email to ${user.email}`);
+                  try {
+                    sendDiscountEmail(bookInfo, user);
+                    console.log(`[${new Date().toISOString()}] monitorBooks: Successfully sent discount email for ${book.isbn13} to ${user.email}`);
+                  } catch (emailError) {
+                    console.error(`[${new Date().toISOString()}] monitorBooks: ERROR sending discount email:`, emailError);
+                  }
+                } else {
+                  console.log(`[${new Date().toISOString()}] monitorBooks: Discount does not exceed user threshold, no email sent`);
                 }
               }
             }
           }
         }
+        console.log(`[${new Date().toISOString()}] monitorBooks: Successfully processed book ${book.isbn13}`);
         return { isbn13: book.isbn13, status: 'processed' };
       } catch (error) {
-        console.error(`Error processing book with ISBN ${book.isbn13}:`, error);
-        return { isbn13: book.isbn13, status: 'error', error };
+        console.error(`[${new Date().toISOString()}] monitorBooks: ERROR processing book with ISBN ${book.isbn13}:`, error);
+        return { 
+          isbn13: book.isbn13, 
+          status: 'error', 
+          error: error instanceof Error ? error.message : String(error)
+        };
       }
     });
     
     // Esperar a que todas las promesas se resuelvan
+    console.log(`[${new Date().toISOString()}] monitorBooks: Waiting for all ${bookProcessingPromises.length} book processes to complete`);
     const results = await Promise.all(bookProcessingPromises);
     
-    console.log('All books processed successfully');
+    const processedCount = results.filter(r => r.status === 'processed').length;
+    const errorsCount = results.filter(r => r.status === 'error').length;
+    console.log(`[${new Date().toISOString()}] monitorBooks: All books processed. Success: ${processedCount}, Errors: ${errorsCount}`);
+    
+    if (errorsCount > 0) {
+      console.log(`[${new Date().toISOString()}] monitorBooks: Books with errors:`, 
+        results.filter(r => r.status === 'error').map(r => r.isbn13).join(', '));
+    }
+    
     res.status(200).json({ 
       message: 'Books processed successfully',
-      processed: results.filter(r => r.status === 'processed').length,
-      errors: results.filter(r => r.status === 'error').length
+      processed: processedCount,
+      errors: errorsCount
     }); 
     return;
   } catch (error) {
-    console.error('Error processing books', error);
-    res.status(500).json({ error: 'Error processing books' });
+    console.error(`[${new Date().toISOString()}] monitorBooks: CRITICAL ERROR in monitor process:`, error);
+    res.status(500).json({ 
+      error: 'Error processing books', 
+      details: error instanceof Error ? error.message : String(error)
+    });
     return;
   }
 };
